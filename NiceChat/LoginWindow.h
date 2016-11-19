@@ -2,17 +2,17 @@
 #include "Window.h"
 
 
-class MainWindow : 
+class LoginWindow :
 	public Window
 {
 private:
-	static INT_PTR CALLBACK MainWndProc(
-		HWND hDlg,
+	static INT_PTR CALLBACK LoginProc(
+		HWND hWnd,
 		UINT message,
 		WPARAM wParam,
 		LPARAM lParam
 	);
 public:
-	MainWindow();
-	~MainWindow();
+	LoginWindow();
+	~LoginWindow();
 };

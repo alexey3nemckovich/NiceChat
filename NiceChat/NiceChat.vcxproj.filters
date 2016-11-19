@@ -25,10 +25,16 @@
     <Filter Include="Source Files\Network">
       <UniqueIdentifier>{36a8020e-eaa9-48df-b4c7-fd24a573b172}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Window">
+    <Filter Include="Header Files\Client">
+      <UniqueIdentifier>{84c1ce49-bcd6-43dc-a812-6bf10ee32b7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Client">
+      <UniqueIdentifier>{490fff8e-2327-40bb-814c-bea8618b56e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Windows">
       <UniqueIdentifier>{cbe60746-7220-4c09-a2aa-00a9a57a44e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Window">
+    <Filter Include="Source Files\Windows">
       <UniqueIdentifier>{b9011364-e74a-4b3e-b4f0-805c2b853f5e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -48,20 +54,29 @@
     <ClInclude Include="resource1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChatWorkspace.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Form.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="LoginForm.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
     <ClInclude Include="MainWindow.h">
-      <Filter>Header Files\Window</Filter>
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="RegistrationForm.h">
-      <Filter>Header Files\Window</Filter>
+    <ClInclude Include="Client.h">
+      <Filter>Header Files\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="LoginWindow.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistrationWindow.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="AboutWindow.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsManager.h">
+      <Filter>Header Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatWindowsList.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -71,20 +86,26 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ChatWorkspace.cpp">
-      <Filter>Source Files\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="Form.cpp">
-      <Filter>Source Files\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="LoginForm.cpp">
-      <Filter>Source Files\Window</Filter>
-    </ClCompile>
     <ClCompile Include="MainWindow.cpp">
-      <Filter>Source Files\Window</Filter>
+      <Filter>Source Files\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="RegistrationForm.cpp">
-      <Filter>Source Files\Window</Filter>
+    <ClCompile Include="Client.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="AboutWindow.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="LoginWindow.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="RegistrationWindow.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsManager.cpp">
+      <Filter>Source Files\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

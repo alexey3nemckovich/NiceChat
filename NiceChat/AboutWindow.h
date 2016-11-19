@@ -2,17 +2,17 @@
 #include "Window.h"
 
 
-class MainWindow : 
+class AboutWindow :
 	public Window
 {
 private:
-	static INT_PTR CALLBACK MainWndProc(
+	static INT_PTR CALLBACK AboutProc(
 		HWND hDlg,
 		UINT message,
 		WPARAM wParam,
 		LPARAM lParam
 	);
 public:
-	MainWindow();
-	~MainWindow();
+	AboutWindow();
+	~AboutWindow();
 };

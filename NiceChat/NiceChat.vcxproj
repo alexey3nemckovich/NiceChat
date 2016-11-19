@@ -145,31 +145,36 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Form.h" />
-    <ClInclude Include="LoginForm.h" />
+    <ClInclude Include="AboutWindow.h" />
+    <ClInclude Include="ChatWindowsList.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="LoginWindow.h" />
     <ClInclude Include="MainWindow.h" />
-    <ClInclude Include="RegistrationForm.h" />
+    <ClInclude Include="RegistrationWindow.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="resource1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="ChatWorkspace.h" />
+    <ClInclude Include="WindowsManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Form.cpp" />
-    <ClCompile Include="LoginForm.cpp" />
+    <ClCompile Include="AboutWindow.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="LoginWindow.cpp" />
     <ClCompile Include="Main.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="RegistrationForm.cpp" />
+    <ClCompile Include="RegistrationWindow.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ChatWorkspace.cpp" />
+    <ClCompile Include="WindowsManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NiceChat.rc" />
