@@ -30,7 +30,7 @@ ATOM Window::RegisterWindowClass()
 	wc.lpszMenuName = NULL;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hbrBackground = NULL;
+	wc.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	return RegisterClass(&wc);
 }
 
@@ -41,7 +41,8 @@ void Window::InitInstance(int width, int height)
 	(
 		this->lpClassName,
 		this->lpWindowName,
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+		//THICKFRAME makes window resizable
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU/* | WS_THICKFRAME*/ | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		width,

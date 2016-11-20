@@ -2,6 +2,10 @@
 #include "LoginWindow.h"
 
 
+HWND LoginWindow::hPassText;
+HWND LoginWindow::hPassEdit;
+HWND LoginWindow::hLoginText;
+HWND LoginWindow::hLoginEdit;
 HWND LoginWindow::hLoginBtn;
 
 
@@ -16,9 +20,19 @@ LoginWindow::LoginWindow()
 void LoginWindow::Init()
 {
 	POINT wndCenter = Window::GetHWNDCenter(hWnd);
-	int width = 100;
-	int height = 100;
-	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - width / 2, wndCenter.y - height /2 , width, height);
+	int w = 150;
+	int h = 50;
+	int loginBtnWidth = 200;
+	int loginBtnHeight = 50;
+	DWORD staticStyle = SS_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
+	DWORD editStyle = ES_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
+	DWORD editPassStyle = ES_PASSWORD | editStyle;
+	DWORD btnStyle;
+	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 100, 100, w, h, staticStyle);
+	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"Login", hWnd, 350, 100, w, h, editStyle);
+	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 100, 200, w, h, staticStyle);
+	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"Password", hWnd, 350, 200, w, h, editPassStyle);
+	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - loginBtnWidth / 2, 275, loginBtnWidth, loginBtnHeight);
 }
 
 

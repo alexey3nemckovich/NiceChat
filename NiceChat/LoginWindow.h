@@ -7,6 +7,10 @@ class LoginWindow :
 {
 private:
 	void Init();
+	static HWND hPassText;
+	static HWND hPassEdit;
+	static HWND hLoginText;
+	static HWND hLoginEdit;
 	static HWND hLoginBtn;
 	static LRESULT CALLBACK LoginProc(
 		HWND hWnd,
