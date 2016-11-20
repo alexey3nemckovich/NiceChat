@@ -26,6 +26,9 @@ void LoginWindow::Init()
 	hPassText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 100, 200, w, h, staticStyle);
 	hPassEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 350, 200, w, h, editPassStyle);
 	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - loginBtnWidth / 2, 275, loginBtnWidth, loginBtnHeight);
+	//INIT FIELDS
+	login = (char*)malloc(strBuffSize);
+	pass = (char*)malloc(strBuffSize);
 }
 
 
@@ -94,6 +97,27 @@ void LoginWindow::BtnClick(LPARAM lParam)
 	HWND hBtn = (HWND)lParam;
 	if (hBtn == hLoginBtn)
 	{
-		Beep(500, 100);
+		if (AllFieldsFilled())
+		{
+			string err_msg;
+			client->TryLogin(string(login), string(pass), &err_msg);
+		}
+		else
+		{
+			MessageBox(hWnd, L"You should fill all fields!", L"NiceChat", MB_OK);
+		}
 	}
+}
+
+
+bool LoginWindow::AllFieldsFilled()
+{
+	GetWindowText(hLoginEdit, (TCHAR*)login, strBuffSize);
+	GetWindowText(hPassEdit, (TCHAR*)pass, strBuffSize);
+	if (strlen(login) == 0
+		|| strlen(pass) == 0)
+	{
+		return false;
+	}
+	return true;
 }

@@ -39,6 +39,12 @@ void RegistrationWindow::Init()
 	hPassConfirmEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 400, w, h, editPassStyle);
 	//reg btn
 	hRegBtn = windowConstructor->CreateControl(L"BUTTON", L"Registrate", hWnd, wndCenter.x - loginBtnWidth / 2, 475, loginBtnWidth, loginBtnHeight);
+	//INIT FIELDS
+	name = (char*)malloc(strBuffSize);
+	lastName = (char*)malloc(strBuffSize);
+	login = (char*)malloc(strBuffSize);
+	pass = (char*)malloc(strBuffSize);
+	passConfirm = (char*)malloc(strBuffSize);
 }
 
 
@@ -107,11 +113,54 @@ void RegistrationWindow::BtnClick(LPARAM lParam)
 	HWND hBtn = (HWND)lParam;
 	if (hBtn == hRegBtn)
 	{
-		Beep(500, 100);
+		if (AllFieldsFilled())
+		{
+			if (PasswordsMatch())
+			{
+				string err_msg;
+				client->TryRegistrate(string(name), string(lastName), string(login), string(pass), &err_msg);
+			}
+			else
+			{
+				MessageBox(hWnd, L"Passwords don't match!", L"NiceChat", MB_OK);
+			}
+		}
+		else
+		{
+			MessageBox(hWnd, L"You should fill all fields!", L"NiceChat", MB_OK);
+		}
 	}
 }
 
+
+bool RegistrationWindow::AllFieldsFilled()
+{
+	GetWindowText(hNameEdit, (TCHAR*)name, strBuffSize);
+	GetWindowText(hLastNameEdit, (TCHAR*)lastName, strBuffSize);
+	GetWindowText(hLoginEdit, (TCHAR*)login, strBuffSize);
+	GetWindowText(hPassEdit, (TCHAR*)pass, strBuffSize);
+	GetWindowText(hPassConfirmEdit, (TCHAR*)passConfirm, strBuffSize);
+	int x = strlen(name);
+	if (strlen(name) == 0
+		|| strlen(lastName) == 0
+		|| strlen(login) == 0
+		|| strlen(pass) == 0
+		|| strlen(passConfirm) == 0)
+	{
+		return false;
+	}
+	return true;
+}
+
+
 bool RegistrationWindow::PasswordsMatch()
 {
-	return true;
+	if (strcmp(pass, passConfirm) == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

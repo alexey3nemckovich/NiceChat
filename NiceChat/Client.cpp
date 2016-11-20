@@ -3,6 +3,9 @@
 using namespace std;
 
 
+std::mutex Client::mtx;
+
+
 Client::Client()
 {
 
@@ -15,17 +18,17 @@ Client::~Client()
 }
 
 
-Client* Client::GetClient()
+Client* Client::GetInstance()
 {
 	static Client* client;
 	if (client == NULL)
 	{
-		mtx.lock();
+		Client::mtx.lock();
 		if (client == NULL)
 		{
 			client = new Client();
 		}
-		mtx.unlock();
+		Client::mtx.unlock();
 	}
 	return client;
 }
@@ -38,9 +41,9 @@ bool Client::TryLogin(string login, string pass, string *err_message)
 
 
 bool Client::TryRegistrate(
+	string name,
+	string last_name,
 	string login,
-	string first_name,
-	string second_name,
 	string pass,
 	string *err_message
 )

@@ -2,6 +2,7 @@
 #include "Window.h"
 
 
+Client *Window::client = Client::GetInstance();
 DialogManager *Window::dialogManager = DialogManager::GetInstance();
 WindowManager *Window::windowManager = WindowManager::GetInstance();
 WindowConstructor *Window::windowConstructor = WindowConstructor::GetInstance();

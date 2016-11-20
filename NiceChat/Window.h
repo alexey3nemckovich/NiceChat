@@ -4,6 +4,7 @@
 #include "resource.h"
 #include <Windows.h>
 #include "DialogManager.h"
+#include "Client.h"
 
 
 typedef LRESULT(CALLBACK *WINDOW_PROC)(
@@ -23,6 +24,7 @@ private:
 	ATOM RegisterWindowClass();
 	void InitInstance(int width, int height);
 protected:
+	static Client *client;
 	static DialogManager *dialogManager;
 	static WindowManager *windowManager;
 	static WindowConstructor* windowConstructor;
