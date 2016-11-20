@@ -2,7 +2,15 @@
 #include "MainWindow.h"
 
 
-MainWindow::MainWindow() : Window(MAIN_WINDOW, MainWindow::MainWndProc)
+MainWindow::MainWindow() 
+	: Window(MainWindow::MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 800, 600)
+{
+	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(IDC_NICECHAT)));
+	Init();
+}
+
+
+void MainWindow::Init()
 {
 
 }
@@ -14,7 +22,7 @@ MainWindow::~MainWindow()
 }
 
 
-INT_PTR CALLBACK MainWindow::MainWndProc(
+LRESULT CALLBACK MainWindow::MainWndProc(
 	HWND hWnd,
 	UINT message,
 	WPARAM wParam,
@@ -29,10 +37,18 @@ INT_PTR CALLBACK MainWindow::MainWndProc(
 		// Parse the menu selections:
 		switch (wmId)
 		{
-		case IDM_ABOUT:
-			windowsManager->ShowWindow(WINDOW_TYPE::ABOUT, false);
+		case ID_M_ABOUT:
+			dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
 			break;
-		case IDM_EXIT:
+		case ID_M_LOGIN:
+			windowsManager->ShowWindow(WINDOW_TYPE::LOGIN);
+			break;
+		case ID_M_REGISTRATE:
+			windowsManager->ShowWindow(WINDOW_TYPE::REGISTRATION);
+			break;
+		case ID_M_LEAVE_CHAT:
+			break;
+		case ID_M_EXIT:
 			DestroyWindow(hWnd);
 			break;
 		default:

@@ -6,12 +6,13 @@ class RegistrationWindow :
 	public Window
 {
 private:
-	static INT_PTR CALLBACK RegistrationProc(
+	static LRESULT CALLBACK RegistrationProc(
 		HWND hWnd,
 		UINT message,
 		WPARAM wParam,
 		LPARAM lParam
 	);
+	void Init();
 public:
 	RegistrationWindow();
 	~RegistrationWindow();

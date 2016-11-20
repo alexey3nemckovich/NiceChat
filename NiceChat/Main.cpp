@@ -12,16 +12,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_NICECHAT));
-	WindowsManager::GetInstance()->ShowWindow(WINDOW_TYPE::MAIN);
+	WindowManager::SetAppParams(hInstance, nCmdShow);
+	WindowManager* windowsManager = WindowManager::GetInstance();
+	windowsManager->ShowWindow(WINDOW_TYPE::MAIN);
 	//Main message loop:
 	MSG msg;
-    while (GetMessage(&msg, nullptr, 0, 0))
+	int ret;
+    while ((ret = GetMessage(&msg, nullptr, 0, 0)) != 0)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+		if (ret == -1)
+		{
+			return -1;
+		}
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
     }
     return (int) msg.wParam;
 }

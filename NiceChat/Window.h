@@ -1,10 +1,12 @@
 #pragma once
-#include "WindowsManager.h"
+#include "WindowManager.h"
+#include "WindowConstructor.h"
 #include "resource.h"
 #include <Windows.h>
+#include "DialogManager.h"
 
 
-typedef INT_PTR(CALLBACK *DIALOG_PROC)(
+typedef LRESULT(CALLBACK *WINDOW_PROC)(
 	HWND hWnd,
 	UINT message,
 	WPARAM wParam,
@@ -14,12 +16,28 @@ typedef INT_PTR(CALLBACK *DIALOG_PROC)(
 
 class Window
 {
+private:
+	LPCTSTR lpClassName;
+	LPCTSTR lpWindowName;
+	WINDOW_PROC wndProc;
+	ATOM RegisterWindowClass();
+	void InitInstance(int width, int height);
 protected:
+	static DialogManager *dialogManager;
+	static WindowManager *windowsManager;
+	static WindowConstructor* windowConstructor;
+	static POINT screenCenter;
+	static POINT GetHWNDCenter(HWND hWnd);
 	HWND hWnd;
-	static WindowsManager *windowsManager;
+	virtual void Init() = 0;
 public:
-	Window(int resource_ID, DIALOG_PROC wnd_proc);
+	Window(WINDOW_PROC wnd_proc, LPCTSTR lpClassName, LPCTSTR lpWindowName, int width, int height);
 	~Window();
+	HWND GetHWnd() const
+	{
+		return hWnd;
+	}
 	void Show();
-	void Hide();
+	void Hide() const;
+	static void MoveToCenter(HWND hWnd);
 };

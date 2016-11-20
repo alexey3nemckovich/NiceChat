@@ -145,9 +145,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AboutWindow.h" />
     <ClInclude Include="ChatWindowsList.h" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="DialogManager.h" />
+    <ClInclude Include="DialogProcedures.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="LoginWindow.h" />
     <ClInclude Include="MainWindow.h" />
@@ -156,11 +157,13 @@
     <ClInclude Include="resource1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="WindowsManager.h" />
+    <ClInclude Include="WindowConstructor.h" />
+    <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AboutWindow.cpp" />
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="DialogManager.cpp" />
+    <ClCompile Include="DialogProcedures.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="LoginWindow.cpp" />
     <ClCompile Include="Main.cpp">
@@ -174,7 +177,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="WindowsManager.cpp" />
+    <ClCompile Include="WindowConstructor.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NiceChat.rc" />

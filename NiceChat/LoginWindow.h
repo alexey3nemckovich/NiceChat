@@ -6,12 +6,15 @@ class LoginWindow :
 	public Window
 {
 private:
-	static INT_PTR CALLBACK LoginProc(
+	void Init();
+	static HWND hLoginBtn;
+	static LRESULT CALLBACK LoginProc(
 		HWND hWnd,
 		UINT message,
 		WPARAM wParam,
 		LPARAM lParam
 	);
+	static void BtnClick(LPARAM lParam);
 public:
 	LoginWindow();
 	~LoginWindow();

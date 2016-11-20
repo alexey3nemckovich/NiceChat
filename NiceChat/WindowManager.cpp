@@ -1,10 +1,14 @@
 #include "stdafx.h"
-#include "WindowsManager.h"
+#include "WindowManager.h"
 #include "Window.h"
 #include "ChatWindowsList.h"
 
 
-WindowsManager::WindowsManager()
+HINSTANCE WindowManager::hInstance;
+int WindowManager::nCmdShow;
+
+
+WindowManager::WindowManager()
 {
 	aboutWindow = NULL;
 	regWindow = NULL;
@@ -13,7 +17,7 @@ WindowsManager::WindowsManager()
 }
 
 
-WindowsManager::~WindowsManager()
+WindowManager::~WindowManager()
 {
 	delete(aboutWindow);
 	delete(regWindow);
@@ -22,16 +26,16 @@ WindowsManager::~WindowsManager()
 }
 
 
-WindowsManager* WindowsManager::GetInstance()
+WindowManager* WindowManager::GetInstance()
 {
-	static WindowsManager* instance = new WindowsManager();
+	static WindowManager* instance = new WindowManager();
 	return instance;
 }
 
 
-void WindowsManager::ShowWindow(WINDOW_TYPE wndType, bool hide_active)
+void WindowManager::ShowWindow(WINDOW_TYPE wndType, bool hide_active)
 {
-	Window* targetWindow = GetTargetWindow(wndType);
+	Window* targetWindow = GetWindow(wndType);
 	if (hide_active)
 	{
 		if (activeWindow != NULL)
@@ -40,11 +44,11 @@ void WindowsManager::ShowWindow(WINDOW_TYPE wndType, bool hide_active)
 		}
 	}
 	targetWindow->Show();
-	activeWindow = targetWindow;
+	activeWindow = (Window*)targetWindow;
 }
 
 
-Window* WindowsManager::GetTargetWindow(WINDOW_TYPE wndType)
+Window* WindowManager::GetWindow(WINDOW_TYPE wndType)
 {
 	switch (wndType)
 	{
@@ -66,12 +70,6 @@ Window* WindowsManager::GetTargetWindow(WINDOW_TYPE wndType)
 			regWindow = new RegistrationWindow();
 		}
 		return regWindow;
-	case WINDOW_TYPE::ABOUT:
-		if (aboutWindow == NULL)
-		{
-			aboutWindow = new AboutWindow();
-		}
-		return aboutWindow;
 	default:
 		return NULL;
 	}
