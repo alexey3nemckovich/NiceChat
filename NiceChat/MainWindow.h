@@ -6,13 +6,16 @@ class MainWindow :
 	public Window
 {
 private:
-	static LRESULT CALLBACK MainWndProc(
+	//inner controls
+	//methods
+	void Init();
+	//wnd proc
+	friend LRESULT CALLBACK MainWndProc(
 		HWND hDlg,
 		UINT message,
 		WPARAM wParam,
 		LPARAM lParam
 	);
-	void Init();
 public:
 	MainWindow();
 	~MainWindow();

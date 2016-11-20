@@ -2,15 +2,8 @@
 #include "LoginWindow.h"
 
 
-HWND LoginWindow::hPassText;
-HWND LoginWindow::hPassEdit;
-HWND LoginWindow::hLoginText;
-HWND LoginWindow::hLoginEdit;
-HWND LoginWindow::hLoginBtn;
-
-
 LoginWindow::LoginWindow() 
-	: Window(LoginWindow::LoginProc, _T("LogWindowClass"), _T("Login"), 600, 400)
+	: Window(LoginProc, _T("LogWindowClass"), _T("Login"), 600, 400)
 {
 	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(ID_LOGIN_MENU)));
 	Init();
@@ -29,9 +22,9 @@ void LoginWindow::Init()
 	DWORD editPassStyle = ES_PASSWORD | editStyle;
 	DWORD btnStyle;
 	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 100, 100, w, h, staticStyle);
-	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"Login", hWnd, 350, 100, w, h, editStyle);
-	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 100, 200, w, h, staticStyle);
-	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"Password", hWnd, 350, 200, w, h, editPassStyle);
+	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 350, 100, w, h, editStyle);
+	hPassText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 100, 200, w, h, staticStyle);
+	hPassEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 350, 200, w, h, editPassStyle);
 	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - loginBtnWidth / 2, 275, loginBtnWidth, loginBtnHeight);
 }
 
@@ -42,7 +35,7 @@ LoginWindow::~LoginWindow()
 }
 
 
-LRESULT CALLBACK LoginWindow::LoginProc(
+LRESULT CALLBACK LoginProc(
 	HWND hWnd,
 	UINT message,
 	WPARAM wParam,
@@ -54,20 +47,21 @@ LRESULT CALLBACK LoginWindow::LoginProc(
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
+		static LoginWindow* loginWindow = (LoginWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::LOGIN);
 		// Parse the menu selections:
 		switch (wmId)
 		{
 		case 0:
-			BtnClick(lParam);
+			loginWindow->BtnClick(lParam);
 			break;
 		case ID_L_ABOUT:
-			dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
+			loginWindow->dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
 			break;
 		case ID_L_REGISTRATE:
-			windowsManager->ShowWindow(WINDOW_TYPE::REGISTRATION);
+			loginWindow->windowManager->ShowWindow(WINDOW_TYPE::REGISTRATION);
 			break;
 		case ID_L_MAIN:
-			windowsManager->ShowWindow(WINDOW_TYPE::MAIN);
+			loginWindow->windowManager->ShowWindow(WINDOW_TYPE::MAIN);
 			break;
 		case ID_L_EXIT:
 			DestroyWindow(hWnd);

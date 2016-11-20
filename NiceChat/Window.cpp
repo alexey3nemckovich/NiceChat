@@ -3,7 +3,7 @@
 
 
 DialogManager *Window::dialogManager = DialogManager::GetInstance();
-WindowManager *Window::windowsManager = WindowManager::GetInstance();
+WindowManager *Window::windowManager = WindowManager::GetInstance();
 WindowConstructor *Window::windowConstructor = WindowConstructor::GetInstance();
 POINT Window::screenCenter = POINT{ 0, 0 };
 
@@ -42,7 +42,7 @@ void Window::InitInstance(int width, int height)
 		this->lpClassName,
 		this->lpWindowName,
 		//THICKFRAME makes window resizable
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU/* | WS_THICKFRAME*/ | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU/* | WS_THICKFRAME*/ | WS_MINIMIZEBOX/* | WS_MAXIMIZEBOX*/,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		width,

@@ -6,19 +6,22 @@ class LoginWindow :
 	public Window
 {
 private:
+	//inner controls
+	HWND hPassText;
+	HWND hPassEdit;
+	HWND hLoginText;
+	HWND hLoginEdit;
+	HWND hLoginBtn;
+	//methods
 	void Init();
-	static HWND hPassText;
-	static HWND hPassEdit;
-	static HWND hLoginText;
-	static HWND hLoginEdit;
-	static HWND hLoginBtn;
-	static LRESULT CALLBACK LoginProc(
+	void BtnClick(LPARAM lParam);
+	//window proc
+	friend LRESULT CALLBACK LoginProc(
 		HWND hWnd,
 		UINT message,
 		WPARAM wParam,
 		LPARAM lParam
 	);
-	static void BtnClick(LPARAM lParam);
 public:
 	LoginWindow();
 	~LoginWindow();

@@ -3,7 +3,7 @@
 
 
 MainWindow::MainWindow() 
-	: Window(MainWindow::MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 800, 600)
+	: Window(MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 800, 600)
 {
 	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(IDC_NICECHAT)));
 	Init();
@@ -22,7 +22,7 @@ MainWindow::~MainWindow()
 }
 
 
-LRESULT CALLBACK MainWindow::MainWndProc(
+LRESULT CALLBACK MainWndProc(
 	HWND hWnd,
 	UINT message,
 	WPARAM wParam,
@@ -34,17 +34,18 @@ LRESULT CALLBACK MainWindow::MainWndProc(
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
+		static MainWindow* mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::REGISTRATION);
 		// Parse the menu selections:
 		switch (wmId)
 		{
 		case ID_M_ABOUT:
-			dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
+			mainWindow->dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
 			break;
 		case ID_M_LOGIN:
-			windowsManager->ShowWindow(WINDOW_TYPE::LOGIN);
+			mainWindow->windowManager->ShowWindow(WINDOW_TYPE::LOGIN);
 			break;
 		case ID_M_REGISTRATE:
-			windowsManager->ShowWindow(WINDOW_TYPE::REGISTRATION);
+			mainWindow->windowManager->ShowWindow(WINDOW_TYPE::REGISTRATION);
 			break;
 		case ID_M_LEAVE_CHAT:
 			break;

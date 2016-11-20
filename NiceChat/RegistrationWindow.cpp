@@ -3,7 +3,7 @@
 
 
 RegistrationWindow::RegistrationWindow() 
-	: Window(RegistrationWindow::RegistrationProc, _T("RegWindowClass"), _T("Registration"), 400, 600)
+	: Window(RegistrationProc, _T("RegWindowClass"), _T("Registration"), 400, 600)
 {
 	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(ID_REGISTRATION_MENU)));
 	Init();
@@ -13,6 +13,32 @@ RegistrationWindow::RegistrationWindow()
 void RegistrationWindow::Init()
 {
 
+	POINT wndCenter = Window::GetHWNDCenter(hWnd);
+	int w = 125;
+	int h = 50;
+	int loginBtnWidth = 200;
+	int loginBtnHeight = 50;
+	DWORD staticStyle = SS_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
+	DWORD editStyle = ES_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
+	DWORD editPassStyle = ES_PASSWORD | editStyle;
+	DWORD btnStyle;
+	//name
+	hNameText = windowConstructor->CreateControl(L"STATIC", L"Name", hWnd, 50, 100, w, h, staticStyle);
+	hNameEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 100, w, h, editStyle);
+	//last name
+	hLastNameText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 50, 175, w, h, staticStyle);
+	hLastNameEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 175, w, h, editStyle);
+	//login
+	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 50, 250, w, h, staticStyle);
+	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 250, w, h, editStyle);
+	//pass
+	hPassText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 50, 325, w, h, staticStyle);
+	hPassEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 325, w, h, editPassStyle);
+	//pass confirm
+	hPassConfirmText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 50, 400, w, h, staticStyle);
+	hPassConfirmEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 400, w, h, editPassStyle);
+	//reg btn
+	hRegBtn = windowConstructor->CreateControl(L"BUTTON", L"Registrate", hWnd, wndCenter.x - loginBtnWidth / 2, 475, loginBtnWidth, loginBtnHeight);
 }
 
 
@@ -22,7 +48,7 @@ RegistrationWindow::~RegistrationWindow()
 }
 
 
-LRESULT CALLBACK RegistrationWindow::RegistrationProc(
+LRESULT CALLBACK RegistrationProc(
 	HWND hWnd,
 	UINT message,
 	WPARAM wParam,
@@ -34,17 +60,21 @@ LRESULT CALLBACK RegistrationWindow::RegistrationProc(
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
+		static RegistrationWindow* regWindow = (RegistrationWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::REGISTRATION);
 		// Parse the menu selections:
 		switch (wmId)
 		{
+		case 0:
+			regWindow->BtnClick(lParam);
+			break;
 		case ID_R_ABOUT:
-			dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
+			regWindow->dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
 			break;
 		case ID_R_LOGIN:
-			windowsManager->ShowWindow(WINDOW_TYPE::LOGIN);
+			regWindow->windowManager->ShowWindow(WINDOW_TYPE::LOGIN);
 			break;
 		case ID_R_MAIN:
-			windowsManager->ShowWindow(WINDOW_TYPE::MAIN);
+			regWindow->windowManager->ShowWindow(WINDOW_TYPE::MAIN);
 			break;
 		case ID_R_EXIT:
 			DestroyWindow(hWnd);
@@ -69,4 +99,19 @@ LRESULT CALLBACK RegistrationWindow::RegistrationProc(
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
+}
+
+
+void RegistrationWindow::BtnClick(LPARAM lParam)
+{
+	HWND hBtn = (HWND)lParam;
+	if (hBtn == hRegBtn)
+	{
+		Beep(500, 100);
+	}
+}
+
+bool RegistrationWindow::PasswordsMatch()
+{
+	return true;
 }

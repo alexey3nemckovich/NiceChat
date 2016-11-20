@@ -24,7 +24,7 @@ private:
 	void InitInstance(int width, int height);
 protected:
 	static DialogManager *dialogManager;
-	static WindowManager *windowsManager;
+	static WindowManager *windowManager;
 	static WindowConstructor* windowConstructor;
 	static POINT screenCenter;
 	static POINT GetHWNDCenter(HWND hWnd);
