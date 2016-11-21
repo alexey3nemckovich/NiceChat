@@ -38,6 +38,10 @@ public:
 		return nCmdShow;
 	}
 	static WindowManager* GetInstance();
+	Window *GetActiveWindow()
+	{
+		return activeWindow;
+	}
 	Window *GetWindow(WINDOW_TYPE wndType);
 	void ShowWindow(WINDOW_TYPE wndType, bool hide_active = true);
 };

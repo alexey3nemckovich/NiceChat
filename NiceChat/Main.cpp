@@ -24,10 +24,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			return -1;
 		}
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		if (!IsDialogMessage(windowsManager->GetActiveWindow()->GetHWnd(), &msg))
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		}
     }
     return (int) msg.wParam;

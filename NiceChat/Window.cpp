@@ -43,7 +43,7 @@ void Window::InitInstance(int width, int height)
 		this->lpClassName,
 		this->lpWindowName,
 		//THICKFRAME makes window resizable
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU/* | WS_THICKFRAME*/ | WS_MINIMIZEBOX/* | WS_MAXIMIZEBOX*/,
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		width,

@@ -17,7 +17,7 @@ void LoginWindow::Init()
 	int h = 50;
 	int loginBtnWidth = 200;
 	int loginBtnHeight = 50;
-	DWORD staticStyle = SS_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
+	DWORD staticStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD;
 	DWORD editStyle = ES_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
 	DWORD editPassStyle = ES_PASSWORD | editStyle;
 	DWORD btnStyle;
@@ -34,7 +34,8 @@ void LoginWindow::Init()
 
 LoginWindow::~LoginWindow()
 {
-
+	free(login);
+	free(pass);
 }
 
 
