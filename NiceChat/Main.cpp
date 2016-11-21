@@ -24,7 +24,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			return -1;
 		}
-		if (!IsDialogMessage(windowsManager->GetActiveWindow()->GetHWnd(), &msg))
+		if (!IsDialogMessage(GetActiveWindow(), &msg))
 		{
 			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 			{
