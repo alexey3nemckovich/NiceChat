@@ -29,13 +29,13 @@ private:
 	void Init();
 	bool PasswordsMatch();
 	bool AllFieldsFilled();
-	void BtnClick(LPARAM lParam);
+	void InnerControlsProc(LPARAM, WORD);
 	//wnd proc
 	friend LRESULT CALLBACK RegistrationProc(
-		HWND hWnd,
-		UINT message,
-		WPARAM wParam,
-		LPARAM lParam
+		HWND,
+		UINT,
+		WPARAM,
+		LPARAM
 	);
 public:
 	RegistrationWindow();

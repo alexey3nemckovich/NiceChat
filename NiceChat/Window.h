@@ -1,6 +1,7 @@
 #pragma once
 #include "WindowManager.h"
 #include "WindowConstructor.h"
+#include <CommCtrl.h>
 #include "resource.h"
 #include <Windows.h>
 #include "DialogManager.h"
@@ -32,6 +33,7 @@ protected:
 	static POINT GetHWNDCenter(HWND hWnd);
 	HWND hWnd;
 	virtual void Init() = 0;
+	virtual void InnerControlsProc(LPARAM, WORD) = 0;
 public:
 	Window(WINDOW_PROC wnd_proc, LPCTSTR lpClassName, LPCTSTR lpWindowName, int width, int height);
 	~Window();

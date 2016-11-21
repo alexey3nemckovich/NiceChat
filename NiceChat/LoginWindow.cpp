@@ -56,7 +56,7 @@ LRESULT CALLBACK LoginProc(
 		switch (wmId)
 		{
 		case 0:
-			loginWindow->BtnClick(lParam);
+			loginWindow->InnerControlsProc(lParam, HIWORD(wParam));
 			break;
 		case ID_L_ABOUT:
 			loginWindow->dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
@@ -93,10 +93,10 @@ LRESULT CALLBACK LoginProc(
 }
 
 
-void LoginWindow::BtnClick(LPARAM lParam)
+void LoginWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 {
-	HWND hBtn = (HWND)lParam;
-	if (hBtn == hLoginBtn)
+	HWND hControl = (HWND)lParam;
+	if (hControl == hLoginBtn)
 	{
 		if (AllFieldsFilled())
 		{

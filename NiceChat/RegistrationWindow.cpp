@@ -75,7 +75,7 @@ LRESULT CALLBACK RegistrationProc(
 		switch (wmId)
 		{
 		case 0:
-			regWindow->BtnClick(lParam);
+			regWindow->InnerControlsProc(lParam, HIWORD(wParam));
 			break;
 		case ID_R_ABOUT:
 			regWindow->dialogManager->ShowDialog(DIALOG_TYPE::ABOUT);
@@ -112,10 +112,10 @@ LRESULT CALLBACK RegistrationProc(
 }
 
 
-void RegistrationWindow::BtnClick(LPARAM lParam)
+void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 {
-	HWND hBtn = (HWND)lParam;
-	if (hBtn == hRegBtn)
+	HWND hControl = (HWND)lParam;
+	if (hControl == hRegBtn)
 	{
 		if (AllFieldsFilled())
 		{

@@ -92,6 +92,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -145,6 +146,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CaptureDevice.h" />
     <ClInclude Include="ChatWindowsList.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="DialogManager.h" />
@@ -161,6 +164,7 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="DialogManager.cpp" />
     <ClCompile Include="DialogProcedures.cpp" />

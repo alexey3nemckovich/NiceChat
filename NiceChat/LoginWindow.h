@@ -19,13 +19,13 @@ private:
 	//methods
 	void Init();
 	bool AllFieldsFilled();
-	void BtnClick(LPARAM lParam);
+	void InnerControlsProc(LPARAM, WORD);
 	//window proc
 	friend LRESULT CALLBACK LoginProc(
-		HWND hWnd,
-		UINT message,
-		WPARAM wParam,
-		LPARAM lParam
+		HWND,
+		UINT,
+		WPARAM,
+		LPARAM
 	);
 public:
 	LoginWindow();

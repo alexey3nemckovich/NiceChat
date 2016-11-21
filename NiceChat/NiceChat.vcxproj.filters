@@ -13,14 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Device">
-      <UniqueIdentifier>{1f188743-2d4b-4625-9dfa-841c692741be}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Network">
       <UniqueIdentifier>{09014d8f-ad2b-4001-a0f9-1cf5e41f65f0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Device">
-      <UniqueIdentifier>{882a6486-52ea-4bf3-a403-4cf105277ba6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Network">
       <UniqueIdentifier>{36a8020e-eaa9-48df-b4c7-fd24a573b172}</UniqueIdentifier>
@@ -42,6 +36,12 @@
     </Filter>
     <Filter Include="Source Files\Dialogs">
       <UniqueIdentifier>{4f595042-5aa3-4d0d-9800-7b3661496ded}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Devices">
+      <UniqueIdentifier>{1f188743-2d4b-4625-9dfa-841c692741be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Devices">
+      <UniqueIdentifier>{882a6486-52ea-4bf3-a403-4cf105277ba6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -90,6 +90,12 @@
     <ClInclude Include="WindowConstructor.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files\Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="CaptureDevice.h">
+      <Filter>Header Files\Devices</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -124,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="WindowConstructor.cpp">
       <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files\Devices</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

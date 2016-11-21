@@ -18,5 +18,6 @@
 #include <tchar.h>
 #include <exception>
 #include <iostream>
+#include <vector>
 
 // TODO: reference additional headers your program requires here
