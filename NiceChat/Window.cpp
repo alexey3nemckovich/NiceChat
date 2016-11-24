@@ -69,7 +69,7 @@ void Window::Show()
 }
 
 
-void Window::Hide() const
+void Window::Hide()
 {
 	ShowWindow(hWnd, SW_HIDE);
 }

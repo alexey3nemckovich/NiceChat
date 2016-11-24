@@ -41,7 +41,7 @@ public:
 	{
 		return hWnd;
 	}
-	void Show();
-	void Hide() const;
+	virtual void Show();
+	virtual void Hide();
 	static void MoveToCenter(HWND hWnd);
 };
