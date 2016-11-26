@@ -155,6 +155,7 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="DialogManager.h" />
     <ClInclude Include="DialogProcedures.h" />
+    <ClInclude Include="ImageProcesser.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="LoginWindow.h" />
     <ClInclude Include="MainWindow.h" />
@@ -171,6 +172,7 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="DialogManager.cpp" />
     <ClCompile Include="DialogProcedures.cpp" />
+    <ClCompile Include="ImageProcesser.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="LoginWindow.cpp" />
     <ClCompile Include="Main.cpp">

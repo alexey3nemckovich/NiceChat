@@ -43,6 +43,12 @@
     <Filter Include="Source Files\Devices">
       <UniqueIdentifier>{882a6486-52ea-4bf3-a403-4cf105277ba6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Image">
+      <UniqueIdentifier>{65e9a0e6-f9bf-44fc-a714-e047f64b410e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Image">
+      <UniqueIdentifier>{c0781091-771d-49b4-916f-4cb154832561}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -96,6 +102,9 @@
     <ClInclude Include="CaptureDevice.h">
       <Filter>Header Files\Devices</Filter>
     </ClInclude>
+    <ClInclude Include="ImageProcesser.h">
+      <Filter>Header Files\Image</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -133,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\Devices</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageProcesser.cpp">
+      <Filter>Source Files\Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

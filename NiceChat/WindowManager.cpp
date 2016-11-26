@@ -28,8 +28,8 @@ WindowManager::~WindowManager()
 
 WindowManager* WindowManager::GetInstance()
 {
-	static WindowManager* instance = new WindowManager();
-	return instance;
+	static WindowManager instance = WindowManager();
+	return &instance;
 }
 
 

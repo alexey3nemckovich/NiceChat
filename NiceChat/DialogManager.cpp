@@ -11,14 +11,14 @@ DialogManager::DialogManager()
 
 DialogManager::~DialogManager()
 {
-
+	delete(aboutDialog);
 }
 
 
 DialogManager* DialogManager::GetInstance()
 {
-	static DialogManager* dialogManager = new DialogManager();
-	return dialogManager;
+	static DialogManager dialogManager = DialogManager();
+	return &dialogManager;
 }
 
 

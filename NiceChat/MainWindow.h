@@ -1,6 +1,7 @@
 #pragma once
 #include "Window.h"
 #include "Camera.h"
+#include "ImageProcesser.h"
 
 
 class MainWindow : 
@@ -9,6 +10,7 @@ class MainWindow :
 private:
 	//inner controls
 	HWND hListCapsComboBox;
+	HWND hWebCamBox;
 	//methods
 	void Init();
 	void InnerControlsProc(LPARAM, WORD);
@@ -23,8 +25,14 @@ private:
 		LPARAM
 	);
 	//fields
-	Camera *camera;
-	int selectedCapIndex;
+	bool isAlive;
+	const int webCamBoxLeft = 200;
+	const int webCamBoxTop = 30;
+	const int webCamBoxWidth = 640;
+	const int webCamBoxHeight = 480;
+	const RECT webCamBoxRect = RECT{webCamBoxLeft, webCamBoxTop, webCamBoxLeft + webCamBoxWidth, webCamBoxTop + webCamBoxHeight};
+	Camera* camera;
+	const ImageProcesser* imageProcesser;
 	vector<CaptureDevice> listCaps;
 	HANDLE webcamThread;
 	friend DWORD WINAPI CamRenderingProc(

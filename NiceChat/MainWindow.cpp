@@ -3,7 +3,7 @@
 
 
 MainWindow::MainWindow() 
-	: Window(MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 800, 600)
+	: Window(MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 900, 600)
 {
 	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(IDC_NICECHAT)));
 	Init();
@@ -12,14 +12,22 @@ MainWindow::MainWindow()
 
 void MainWindow::Init()
 {
-	selectedCapIndex = -1;
-	camera = NULL;
+	isAlive = true;
+	imageProcesser = ImageProcesser::GetInstance();
 	webcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
-	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, 100, 100, 400, 100, cmbBoxStyle);
-	RefreshCapDeviceToComboBox();
-	camera = new Camera(0, hWnd);
-	camera->Open();
+	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, webCamBoxLeft, 0, 40, 100, cmbBoxStyle);
+	DWORD camBoxStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD | SS_BITMAP;
+	hWebCamBox = windowConstructor->CreateControl(
+		L"STATIC",
+		L"",
+		hWnd,
+		webCamBoxLeft,
+		webCamBoxTop,
+		webCamBoxWidth,
+		webCamBoxHeight,
+		camBoxStyle);
+	camera = new Camera(0, webCamBoxWidth, webCamBoxHeight, hWnd);
 }
 
 
@@ -27,12 +35,12 @@ void MainWindow::RefreshCapDeviceToComboBox()
 {
 	SendMessage(hListCapsComboBox, CB_RESETCONTENT, 0, 0);
 	//listCaps = Camera::GetListCaps();
-	//int countListCaps = Camera::GetCamsCount();
-	//for (int i = 0; i < countListCaps; i++)
-	//{
-	//	//AddCapDeviceToComboBox(listCaps[i]);
-	//	AddCapDeviceIndexToComboBox(i);
-	//}
+	int countListCaps = Camera::GetCamsCount();
+	for (int i = 0; i < countListCaps; i++)
+	{
+		//AddCapDeviceToComboBox(listCaps[i]);
+		AddCapDeviceIndexToComboBox(i);
+	}
 }
 
 
@@ -54,7 +62,14 @@ void MainWindow::AddCapDeviceToComboBox(CaptureDevice capDevice)
 
 MainWindow::~MainWindow()
 {
-	CloseHandle(webcamThread);
+	if (webcamThread != NULL)
+	{
+		isAlive = false;
+		WaitForSingleObject(webcamThread, INFINITE);
+		CloseHandle(webcamThread);
+		webcamThread = NULL;
+		delete(camera);
+	}
 }
 
 
@@ -65,12 +80,13 @@ LRESULT CALLBACK MainWndProc(
 	LPARAM lParam
 )
 {
+	static MainWindow* mainWindow;
 	switch (message)
 	{
 	case WM_COMMAND:
 	{
-		int wmId = LOWORD(wParam);
-		static MainWindow* mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::MAIN);
+		mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::MAIN);
+		int wmId = LOWORD(wParam);	
 		// Parse the menu selections:
 		switch (wmId)
 		{
@@ -94,6 +110,11 @@ LRESULT CALLBACK MainWndProc(
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
+	}
+	break;
+	case WM_CREATE:
+	{
+		
 	}
 	break;
 	case WM_PAINT:
@@ -124,14 +145,9 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 		case CBN_SELCHANGE:
 			int capIndex;
 			capIndex = SendMessage(hListCapsComboBox, CB_GETCURSEL, 0, 0);
-			if (selectedCapIndex == -1 || capIndex != selectedCapIndex)
+			if (capIndex != camera->GetCapDeviceNumber())
 			{
-				selectedCapIndex = capIndex;
-				if (camera != NULL)
-				{
-					delete(camera);
-				}
-				camera = new Camera(capIndex, hWnd);
+				camera->SetCapDeviceIndex(capIndex);
 			}
 			break;
 		default:
@@ -145,6 +161,7 @@ void MainWindow::Show()
 {
 	RefreshCapDeviceToComboBox();
 	Window::Show();
+	camera->Open();
 	ResumeThread(webcamThread);
 }
 
@@ -152,26 +169,31 @@ void MainWindow::Show()
 void MainWindow::Hide()
 {
 	SuspendThread(webcamThread);
+	camera->Close();
 	Window::Hide();
 }
 
 
 DWORD WINAPI CamRenderingProc(CONST LPVOID lParam)
 {
-	static MainWindow* mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::MAIN);
-	static HWND hWnd = mainWindow->hWnd;
-	static HDC hWdc;
-	static HDC hdc = CreateCompatibleDC(NULL);
-	static cv::Mat frame;
-	while (1)
+	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
+		->GetWindow(WINDOW_TYPE::MAIN);
+	static HWND hCamBox = mainWnd->hWebCamBox;
+	static Camera* cam = mainWnd->camera;
+	static const ImageProcesser* imageProcesser = mainWnd->imageProcesser;
+	static HDC hCamBoxDC;
+	static HDC hBuffDC = CreateCompatibleDC(NULL);
+	static cv::Mat camFrame;
+	static const int webCamBoxWidth = mainWnd->webCamBoxWidth;
+	static const int webCamBoxHeight = mainWnd->webCamBoxHeight;
+	while (mainWnd->isAlive)
 	{
-		frame = mainWindow->camera->GetFrame();
-		cv::imwrite("temp.bmp", frame);
-		HBITMAP cross = (HBITMAP)LoadImage(NULL, L"temp.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		SelectObject(hdc, cross);
-		hWdc = GetDC(hWnd);
-		BitBlt(hWdc, 0, 0, 500, 500, hdc, 0, 0, SRCCOPY);
-		ReleaseDC(hWnd, hWdc);
-		cv::waitKey(1000);
+		camFrame = cam->GetFrame();
+		HBITMAP cross = imageProcesser->ConvertCVMatToHBITMAP(camFrame);
+		SelectObject(hBuffDC, cross);
+		hCamBoxDC = GetDC(hCamBox);
+		BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
+		ReleaseDC(hCamBox, hCamBoxDC);
 	}
+	return 0;
 }

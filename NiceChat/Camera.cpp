@@ -2,43 +2,67 @@
 #include "Camera.h"
 
 
-Camera::Camera(int capIndex, HWND hWnd)
+Camera::Camera(int capIndex, int frameWidth, int frameHeight, HWND hWnd)
 {
 	this->capIndex = capIndex;
 	this->hParentWnd = hWnd;
+	this->frameWidth = frameWidth;
+	this->frameHeight = frameHeight;
 	Init();
 }
 
 
 void Camera::Init()
 {
-	capture = cv::VideoCapture();
+	isOpened = false;
+	capture = cv::VideoCapture();	
 }
 
 
 Camera::~Camera()
 {
-
+	if (isOpened) 
+	{
+		Close();
+	}
 }
 
 
 void Camera::Open()
 {
 	capture.open(capIndex);
+	capture.set(CV_CAP_PROP_FRAME_WIDTH, frameWidth);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT, frameHeight);
+	isOpened = true;
 }
 
 
 cv::Mat Camera::GetFrame()
 {
-	static HBITMAP hBmp;
+	std::lock_guard<std::mutex> lock(camLock);
 	capture >> lastFrame;
 	return lastFrame;
+}
+
+
+void Camera::SetCapDeviceIndex(int index)
+{
+	if (capIndex != index)
+	{
+		std::lock_guard<std::mutex> lock(camLock);
+		capIndex = index;
+		if (isOpened)
+		{
+			Open();
+		}
+	}
 }
 
 
 void Camera::Close()
 {
 	capture.release();
+	isOpened = false;
 }
 
 
