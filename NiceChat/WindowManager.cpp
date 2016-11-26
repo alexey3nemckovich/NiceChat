@@ -10,7 +10,6 @@ int WindowManager::nCmdShow;
 
 WindowManager::WindowManager()
 {
-	aboutWindow = NULL;
 	regWindow = NULL;
 	loginWindow = NULL;
 	mainWindow = NULL;
@@ -19,7 +18,6 @@ WindowManager::WindowManager()
 
 WindowManager::~WindowManager()
 {
-	delete(aboutWindow);
 	delete(regWindow);
 	delete(loginWindow);
 	delete(mainWindow);

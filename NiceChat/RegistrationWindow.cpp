@@ -26,7 +26,7 @@ void RegistrationWindow::Init()
 	hNameText = windowConstructor->CreateControl(L"STATIC", L"Name", hWnd, 50, 100, w, h, staticStyle);
 	hNameEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 100, w, h, editStyle);
 	//last name
-	hLastNameText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 50, 175, w, h, staticStyle);
+	hLastNameText = windowConstructor->CreateControl(L"STATIC", L"Last name", hWnd, 50, 175, w, h, staticStyle);
 	hLastNameEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 175, w, h, editStyle);
 	//login
 	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 50, 250, w, h, staticStyle);
@@ -39,22 +39,12 @@ void RegistrationWindow::Init()
 	hPassConfirmEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 400, w, h, editPassStyle);
 	//reg btn
 	hRegBtn = windowConstructor->CreateControl(L"BUTTON", L"Registrate", hWnd, wndCenter.x - loginBtnWidth / 2, 475, loginBtnWidth, loginBtnHeight);
-	//INIT FIELDS
-	name = (char*)malloc(strBuffSize);
-	lastName = (char*)malloc(strBuffSize);
-	login = (char*)malloc(strBuffSize);
-	pass = (char*)malloc(strBuffSize);
-	passConfirm = (char*)malloc(strBuffSize);
 }
 
 
 RegistrationWindow::~RegistrationWindow()
 {
-	free(name);
-	free(lastName);
-	free(login);
-	free(pass);
-	free(passConfirm);
+	
 }
 
 
@@ -121,8 +111,8 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 		{
 			if (PasswordsMatch())
 			{
-				string err_msg;
-				client->TryRegistrate(string(name), string(lastName), string(login), string(pass), &err_msg);
+				char *err_msg = nullptr;
+				client->TryRegistrate(name, lastName, login, pass, err_msg);
 			}
 			else
 			{
@@ -139,11 +129,17 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 
 bool RegistrationWindow::AllFieldsFilled()
 {
-	GetWindowText(hNameEdit, (TCHAR*)name, strBuffSize);
-	GetWindowText(hLastNameEdit, (TCHAR*)lastName, strBuffSize);
-	GetWindowText(hLoginEdit, (TCHAR*)login, strBuffSize);
-	GetWindowText(hPassEdit, (TCHAR*)pass, strBuffSize);
-	GetWindowText(hPassConfirmEdit, (TCHAR*)passConfirm, strBuffSize);
+	TCHAR buff[strBuffSize];
+	GetWindowText(hNameEdit, buff, strBuffSize);
+	CharToOem(buff, name);
+	GetWindowText(hLastNameEdit, buff, strBuffSize);
+	CharToOem(buff, lastName);
+	GetWindowText(hLoginEdit, buff, strBuffSize);
+	CharToOem(buff, login);
+	GetWindowText(hPassEdit, buff, strBuffSize);
+	CharToOem(buff, pass);
+	GetWindowText(hPassConfirmEdit, buff, strBuffSize);
+	CharToOem(buff, passConfirm);
 	int x = strlen(name);
 	if (strlen(name) == 0
 		|| strlen(lastName) == 0

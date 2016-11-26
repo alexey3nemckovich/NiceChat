@@ -10,11 +10,29 @@ MainWindow::MainWindow()
 }
 
 
+MainWindow::~MainWindow()
+{
+	if (webcamThread != NULL)
+	{
+		isAlive = false;
+		if (webCamThreadSuspended)
+		{
+			ResumeThread(webcamThread);
+		}
+		WaitForSingleObject(webcamThread, INFINITE);
+		CloseHandle(webcamThread);
+		webcamThread = NULL;
+		delete(camera);
+	}
+}
+
+
 void MainWindow::Init()
 {
 	isAlive = true;
 	imageProcesser = ImageProcesser::GetInstance();
 	webcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
+	webCamThreadSuspended = true;
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
 	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, webCamBoxLeft, 0, 40, 100, cmbBoxStyle);
 	DWORD camBoxStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD | SS_BITMAP;
@@ -57,19 +75,6 @@ void MainWindow::AddCapDeviceToComboBox(CaptureDevice capDevice)
 	TCHAR fullCapDescript[capDevice.cbName + capDevice.cbVer];
 	_stprintf_s(fullCapDescript, L"%s %s", capDevice.lpszName, capDevice.lpszDescription);
 	SendMessage(hListCapsComboBox, CB_ADDSTRING, 0, (LPARAM)fullCapDescript);
-}
-
-
-MainWindow::~MainWindow()
-{
-	if (webcamThread != NULL)
-	{
-		isAlive = false;
-		WaitForSingleObject(webcamThread, INFINITE);
-		CloseHandle(webcamThread);
-		webcamThread = NULL;
-		delete(camera);
-	}
 }
 
 
@@ -163,12 +168,14 @@ void MainWindow::Show()
 	Window::Show();
 	camera->Open();
 	ResumeThread(webcamThread);
+	webCamThreadSuspended = false;
 }
 
 
 void MainWindow::Hide()
 {
 	SuspendThread(webcamThread);
+	webCamThreadSuspended = true;
 	camera->Close();
 	Window::Hide();
 }

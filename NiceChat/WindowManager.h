@@ -5,7 +5,6 @@ enum class WINDOW_TYPE{MAIN, REGISTRATION, LOGIN, ABOUT};
 
 
 class Window;
-class AboutWindow;
 class MainWindow;
 class LoginWindow;
 class RegistrationWindow;
@@ -16,7 +15,6 @@ class WindowManager
 private:
 	static HINSTANCE hInstance;
 	static int nCmdShow;
-	AboutWindow *aboutWindow;
 	MainWindow *mainWindow;
 	LoginWindow *loginWindow;
 	RegistrationWindow *regWindow;

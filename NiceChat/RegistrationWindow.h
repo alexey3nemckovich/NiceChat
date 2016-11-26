@@ -19,12 +19,12 @@ private:
 	HWND hPassConfirmEdit;
 	HWND hRegBtn;
 	//fields
-	const int strBuffSize = 50;
-	char *name;
-	char *lastName;
-	char *login;
-	char *pass;
-	char *passConfirm;
+	static const int strBuffSize = 50;
+	char name[strBuffSize];
+	char lastName[strBuffSize];
+	char login[strBuffSize];
+	char pass[strBuffSize];
+	char passConfirm[strBuffSize];
 	//methods
 	void Init();
 	bool PasswordsMatch();

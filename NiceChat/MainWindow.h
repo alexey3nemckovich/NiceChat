@@ -35,6 +35,7 @@ private:
 	const ImageProcesser* imageProcesser;
 	vector<CaptureDevice> listCaps;
 	HANDLE webcamThread;
+	bool webCamThreadSuspended;
 	friend DWORD WINAPI CamRenderingProc(
 		CONST LPVOID lpParam
 	);
