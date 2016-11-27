@@ -2,6 +2,9 @@
 #include "RegistrationWindow.h"
 
 
+LPCWSTR PCharToLPCWSTR(char* str);
+
+
 RegistrationWindow::RegistrationWindow() 
 	: Window(RegistrationProc, _T("RegWindowClass"), _T("Registration"), 400, 600)
 {
@@ -111,8 +114,13 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 		{
 			if (PasswordsMatch())
 			{
-				char *err_msg = nullptr;
-				client->TryRegistrate(name, lastName, login, pass, err_msg);
+				char err_msg[100];
+				if (!client->TryRegistrate(name, lastName, login, pass, err_msg))
+				{
+					LPCWSTR l_err_msg = PCharToLPCWSTR(err_msg);
+					MessageBox(NULL, l_err_msg, L"Error", 0);
+					free((void*)l_err_msg);
+				}
 			}
 			else
 			{
@@ -124,6 +132,15 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 			MessageBox(hWnd, L"You should fill all fields!", L"NiceChat", MB_OK);
 		}
 	}
+}
+
+
+LPCWSTR PCharToLPCWSTR(char* str)
+{
+	wchar_t *wtext = (wchar_t*)malloc(1000);
+	mbstowcs(wtext, str, strlen(str) + 1);
+	LPCWSTR ptr = wtext;
+	return ptr;
 }
 
 
