@@ -9,15 +9,16 @@ class Client
 {
 private:
 	//Fields
-	sockaddr_in udp_sock_serv_addr;
-	SOCKET udp_sock_serv;
-	sockaddr_in udp_sock_video_addr;
-	SOCKET udp_sock_video;
 	const int SERVER_PORT = 666;
 	static const int BUFF_LEN = 1000000;
+	SOCKET udp_sock_serv;
+	SOCKET udp_sock_video;
+	sockaddr_in udp_sock_serv_addr;
+	sockaddr_in udp_sock_video_addr;
 	struct sockaddr_in server_addr;
 	bool online;
 	HANDLE servListenThread;
+	HANDLE videoListenThread;
 	//Methods
 	Client();
 	~Client();

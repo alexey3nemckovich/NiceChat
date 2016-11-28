@@ -35,6 +35,7 @@ void Client::Init()
 		printf("WSAStart error %d\n", WSAGetLastError());
 		ExitProcess(0);
 	}
+	u_long iUdpSocketsMode = 1;
 	//Server listening socket
 	udp_sock_serv = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udp_sock_serv == INVALID_SOCKET)
@@ -54,6 +55,10 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
+	if (ioctlsocket(udp_sock_serv, FIONBIO, &iUdpSocketsMode))
+	{
+		ExitProcess(0);
+	}
 	//Video frames listening socket
 	udp_sock_video = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udp_sock_video == INVALID_SOCKET)
@@ -70,6 +75,10 @@ void Client::Init()
 		printf("Error bind %d\nPress 'Enter' to exit.", WSAGetLastError());
 		closesocket(udp_sock_video);
 		WSACleanup();
+		ExitProcess(0);
+	}
+	if (ioctlsocket(udp_sock_serv, FIONBIO, &iUdpSocketsMode))
+	{
 		ExitProcess(0);
 	}
 	//Init server sock addr
@@ -150,6 +159,8 @@ bool Client::TryRegistrate(
 	Sleep(5);
 	send(tcp_sock, (char*)(&udp_sock_video_addr), sizeof(udp_sock_video_addr), 0);
 	Sleep(5);
+	online = true;
+	servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 	//Check registration result
 	int recv_len = 0;
 	recv_len = recv(tcp_sock, buff, Client::BUFF_LEN, 0);
@@ -193,7 +204,7 @@ DWORD WINAPI ServListenProc(LPVOID lParam)
 	while (client->online)
 	{
 		recv_len = recvfrom(client->udp_sock_serv, buff, Client::BUFF_LEN, 0, NULL, 0);
-		if (recv_len != 0)
+		if (recv_len != -1)
 		{
 			printf("Got message from serv!");
 		}
