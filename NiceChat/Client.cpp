@@ -44,15 +44,8 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
-	ZeroMemory(&udp_sock_serv_addr, sizeof(udp_sock_serv_addr));
-	udp_sock_serv_addr.sin_family = AF_INET;
-	udp_sock_serv_addr.sin_port = 0;// htons(1234);
-	udp_sock_serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	if (::bind(udp_sock_serv, (struct sockaddr*)&udp_sock_serv_addr, sizeof(udp_sock_serv_addr)))
+	if (!bindSocketWithRandomAddr(udp_sock_serv, &udp_sock_serv_addr))
 	{
-		printf("Error bind %d\nPress 'Enter' to exit.", WSAGetLastError());
-		closesocket(udp_sock_serv);
-		WSACleanup();
 		ExitProcess(0);
 	}
 	//Enable non blocking socket mode
@@ -68,14 +61,8 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
-	udp_sock_video_addr.sin_family = AF_INET;	
-	udp_sock_video_addr.sin_port = 0;// htons(1324);
-	udp_sock_video_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	if (::bind(udp_sock_video, (sockaddr*)&udp_sock_video_addr, sizeof(udp_sock_video_addr)))
+	if (!bindSocketWithRandomAddr(udp_sock_video, &udp_sock_video_addr))
 	{
-		printf("Error bind %d\nPress 'Enter' to exit.", WSAGetLastError());
-		closesocket(udp_sock_video);
-		WSACleanup();
 		ExitProcess(0);
 	}
 	//Enable non blocking socket mode
@@ -161,6 +148,8 @@ bool Client::TryRegistrate(
 	Sleep(5);
 	send(tcp_sock, (char*)(&udp_sock_video_addr), sizeof(udp_sock_video_addr), 0);
 	Sleep(5);
+	online = true;
+	servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 	//Check registration result
 	int recv_len = 0;
 	recv_len = recv(tcp_sock, buff, Client::BUFF_LEN, 0);

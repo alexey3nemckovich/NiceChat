@@ -3,6 +3,7 @@
 #include <string>
 #include <winsock2.h>
 #include "ClientInfo.h"
+#include "Network.h"
 using namespace std;
 
 
