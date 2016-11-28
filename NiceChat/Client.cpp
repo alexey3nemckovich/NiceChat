@@ -43,9 +43,10 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
+	ZeroMemory(&udp_sock_serv_addr, sizeof(udp_sock_serv_addr));
 	udp_sock_serv_addr.sin_family = AF_INET;
 	udp_sock_serv_addr.sin_port = htons(1234);
-	udp_sock_serv_addr.sin_addr.s_addr = INADDR_ANY;
+	udp_sock_serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	if (::bind(udp_sock_serv, (struct sockaddr*)&udp_sock_serv_addr, sizeof(udp_sock_serv_addr)))
 	{
 		printf("Error bind %d\nPress 'Enter' to exit.", WSAGetLastError());
@@ -53,8 +54,6 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
-	//recvfrom(udp_sock_serv, NULL, 0, 0, NULL, 0);
-
 	//Video frames listening socket
 	udp_sock_video = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udp_sock_video == INVALID_SOCKET)
@@ -65,7 +64,7 @@ void Client::Init()
 	}
 	udp_sock_video_addr.sin_family = AF_INET;	
 	udp_sock_video_addr.sin_port = htons(1324);
-	udp_sock_video_addr.sin_addr.s_addr = INADDR_ANY;
+	udp_sock_video_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	if (::bind(udp_sock_video, (sockaddr*)&udp_sock_video_addr, sizeof(udp_sock_video_addr)))
 	{
 		printf("Error bind %d\nPress 'Enter' to exit.", WSAGetLastError());
@@ -134,11 +133,11 @@ bool Client::TryRegistrate(
 		int connect_err = WSAGetLastError();
 		return false;
 	}
+	//Send to server own properties
 	buff[0] = 0;
 	send(tcp_sock, buff, 1, 0);
-	int mess_len = strlen(name);
 	Sleep(5);
-	send(tcp_sock, name, mess_len, 0);
+	send(tcp_sock, name, strlen(name), 0);
 	Sleep(5);
 	send(tcp_sock, last_name, strlen(last_name), 0);
 	Sleep(5);
@@ -146,13 +145,23 @@ bool Client::TryRegistrate(
 	Sleep(5);
 	send(tcp_sock, pass, strlen(pass), 0);
 	Sleep(5);
-	send(tcp_sock, (char*)&udp_sock_serv_addr, sizeof(udp_sock_serv_addr), 0);
+	//Send to server udp sockets addresses
+	send(tcp_sock, (char*)(&udp_sock_serv_addr.sin_port), sizeof(udp_sock_serv_addr.sin_port), 0);
 	Sleep(5);
-	send(tcp_sock, (char*)&udp_sock_video_addr, sizeof(udp_sock_video_addr), 0);
+	send(tcp_sock, (char*)(&udp_sock_serv_addr.sin_addr.S_un.S_addr), sizeof(udp_sock_serv_addr.sin_addr.S_un.S_addr), 0);
 	Sleep(5);
-	int recv_len;
-	recv_len = recv(tcp_sock, buff, BUFF_LEN, 0);
+	send(tcp_sock, (char*)(&udp_sock_video_addr.sin_port), sizeof(udp_sock_video_addr.sin_port), 0);
+	Sleep(5);
+	send(tcp_sock, (char*)(&udp_sock_video_addr.sin_addr.S_un.S_addr), sizeof(udp_sock_video_addr.sin_addr.S_un.S_addr), 0);
+	Sleep(5);
+	//
+	recvfrom(udp_sock_serv, buff, Client::BUFF_LEN, 0, NULL, 0);
+	recvfrom(udp_sock_video, buff, Client::BUFF_LEN, 0, NULL, 0);
+	//
+	int recv_len = 0;
+	recv_len = recv(tcp_sock, buff, Client::BUFF_LEN, 0);
 	closesocket(tcp_sock);
+	//Check registration ok
 	if (recv_len == 0)
 	{
 		online = true;
@@ -164,6 +173,7 @@ bool Client::TryRegistrate(
 		strcpy(err_message, buff);
 		return false;
 	}
+	//
 }
 
 
@@ -182,7 +192,7 @@ void Client::LeaveChat()
 
 DWORD WINAPI ServListenProc(LPVOID lParam)
 {
-	static char buff[Client::BUFF_LEN];
+	char buff[Client::BUFF_LEN];
 	ZeroMemory(buff, Client::BUFF_LEN);
 	Client* client = Client::GetInstance();
 	sockaddr_in serv_addr;
@@ -190,7 +200,7 @@ DWORD WINAPI ServListenProc(LPVOID lParam)
 	int recv_len;
 	while (client->online)
 	{
-		recv_len = recvfrom(client->udp_sock_serv, buff, Client::BUFF_LEN, 0, (sockaddr*)&serv_addr, &serv_addr_size);
+		recv_len = recvfrom(client->udp_sock_serv, buff, Client::BUFF_LEN, 0, NULL, 0);
 		if (recv_len != 0)
 		{
 			printf("Got message from serv!");
