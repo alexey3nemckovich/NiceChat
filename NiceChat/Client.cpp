@@ -55,6 +55,7 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
+	//Enable non blocking socket mode
 	if (ioctlsocket(udp_sock_serv, FIONBIO, &iUdpSocketsMode))
 	{
 		ExitProcess(0);
@@ -77,6 +78,7 @@ void Client::Init()
 		WSACleanup();
 		ExitProcess(0);
 	}
+	//Enable non blocking socket mode
 	if (ioctlsocket(udp_sock_serv, FIONBIO, &iUdpSocketsMode))
 	{
 		ExitProcess(0);
@@ -159,8 +161,6 @@ bool Client::TryRegistrate(
 	Sleep(5);
 	send(tcp_sock, (char*)(&udp_sock_video_addr), sizeof(udp_sock_video_addr), 0);
 	Sleep(5);
-	online = true;
-	servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 	//Check registration result
 	int recv_len = 0;
 	recv_len = recv(tcp_sock, buff, Client::BUFF_LEN, 0);
