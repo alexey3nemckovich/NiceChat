@@ -146,22 +146,14 @@ bool Client::TryRegistrate(
 	send(tcp_sock, pass, strlen(pass), 0);
 	Sleep(5);
 	//Send to server udp sockets addresses
-	send(tcp_sock, (char*)(&udp_sock_serv_addr.sin_port), sizeof(udp_sock_serv_addr.sin_port), 0);
+	send(tcp_sock, (char*)(&udp_sock_serv_addr), sizeof(udp_sock_serv_addr), 0);
 	Sleep(5);
-	send(tcp_sock, (char*)(&udp_sock_serv_addr.sin_addr.S_un.S_addr), sizeof(udp_sock_serv_addr.sin_addr.S_un.S_addr), 0);
+	send(tcp_sock, (char*)(&udp_sock_video_addr), sizeof(udp_sock_video_addr), 0);
 	Sleep(5);
-	send(tcp_sock, (char*)(&udp_sock_video_addr.sin_port), sizeof(udp_sock_video_addr.sin_port), 0);
-	Sleep(5);
-	send(tcp_sock, (char*)(&udp_sock_video_addr.sin_addr.S_un.S_addr), sizeof(udp_sock_video_addr.sin_addr.S_un.S_addr), 0);
-	Sleep(5);
-	//
-	recvfrom(udp_sock_serv, buff, Client::BUFF_LEN, 0, NULL, 0);
-	recvfrom(udp_sock_video, buff, Client::BUFF_LEN, 0, NULL, 0);
-	//
+	//Check registration result
 	int recv_len = 0;
 	recv_len = recv(tcp_sock, buff, Client::BUFF_LEN, 0);
 	closesocket(tcp_sock);
-	//Check registration ok
 	if (recv_len == 0)
 	{
 		online = true;
