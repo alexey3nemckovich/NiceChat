@@ -5,7 +5,8 @@
 MainWindow::MainWindow() 
 	: Window(MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 900, 600)
 {
-	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(IDC_NICECHAT)));
+	hMenu = LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(IDC_NICECHAT));
+	SetMenu(hWnd, hMenu);
 	Init();
 }
 
@@ -31,8 +32,9 @@ void MainWindow::Init()
 {
 	isAlive = true;
 	imageProcesser = ImageProcesser::GetInstance();
-	webcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
-	webCamThreadSuspended = true;
+	//webcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
+	//webCamThreadSuspended = true;
+	//init conrtols
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
 	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, webCamBoxLeft, 0, 40, 100, cmbBoxStyle);
 	DWORD camBoxStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD | SS_BITMAP;
@@ -45,7 +47,20 @@ void MainWindow::Init()
 		webCamBoxWidth,
 		webCamBoxHeight,
 		camBoxStyle);
-	camera = new Camera(0, webCamBoxWidth, webCamBoxHeight, hWnd);
+	int clientsListBoxLeft = 40;
+	int clientsListBoxWidth = 200 - 10 - clientsListBoxLeft;
+	DWORD clientsListBoxStyle = LBS_HASSTRINGS | WS_BORDER | WS_VISIBLE | WS_CHILD;
+	hOnlineClientsListBox = windowConstructor->CreateControl(
+		L"LISTBOX",
+		L"",
+		hWnd,
+		clientsListBoxLeft,
+		webCamBoxTop,
+		clientsListBoxWidth,
+		webCamBoxHeight + 10,
+		clientsListBoxStyle);
+	//init camera
+	//camera = new Camera(0, webCamBoxWidth, webCamBoxHeight, hWnd);
 }
 
 
@@ -164,19 +179,35 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 
 void MainWindow::Show()
 {
+	RefreshControlsState();
+	Window::Show();
+	//camera->Open();
+	//ResumeThread(webcamThread);
+	//webCamThreadSuspended = false;
+}
+
+
+void MainWindow::RefreshControlsState()
+{
+	//RefreshCapDeviceToComboBox();
 	if (client->IsOnline())
 	{
 		char newWndTitle[1000];
 		sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
 		SetWinowTitle(newWndTitle);
 		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
-		SetOnlineClientsLits(onlineClientsList);
+		SetOnlineClientsList(onlineClientsList);
+		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
+		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
+		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
 	}
-	RefreshCapDeviceToComboBox();
-	Window::Show();
-	camera->Open();
-	ResumeThread(webcamThread);
-	webCamThreadSuspended = false;
+	else
+	{
+		SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
+		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
+		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
+		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
+	}
 }
 
 
@@ -189,17 +220,26 @@ void MainWindow::SetWinowTitle(char *newWndTitle)
 }
 
 
-void MainWindow::SetOnlineClientsLits(vector<ClientInfo> onlineClients)
+void MainWindow::SetOnlineClientsList(vector<ClientInfo> onlineClients)
 {
-
+	int countOnlineClients = onlineClients.size();
+	for (int i = 0; i < countOnlineClients; i++)
+	{
+		if (strcmp(onlineClients[i].login, client->Login()) != 0)
+		{
+			LPCWSTR lpStr = PCharToLPCWSTR(onlineClients[i].login);
+			SendMessage(hOnlineClientsListBox, LB_ADDSTRING, 0, (LPARAM)lpStr);
+			free((wchar_t*)lpStr);
+		}
+	}
 }
 
 
 void MainWindow::Hide()
 {
-	SuspendThread(webcamThread);
-	webCamThreadSuspended = true;
-	camera->Close();
+	//SuspendThread(webcamThread);
+	//webCamThreadSuspended = true;
+	//camera->Close();
 	Window::Hide();
 }
 

@@ -22,6 +22,7 @@ private:
 	HANDLE videoListenThread;
 	char name[STR_BUFF_SIZE];
 	char last_name[STR_BUFF_SIZE];
+	char login[STR_BUFF_SIZE];
 	//Methods
 	Client();
 	~Client();
@@ -52,6 +53,10 @@ public:
 	char* LastName()
 	{
 		return last_name;
+	}
+	char* Login()
+	{
+		return login;
 	}
 	vector<ClientInfo> GetOnlineClientsList();
 	bool TryConnectTo(char *login);

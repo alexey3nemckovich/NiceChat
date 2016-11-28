@@ -171,6 +171,7 @@ bool Client::TryRegistrate(
 		servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 		strcpy(this->name, name);
 		strcpy(this->last_name, last_name);
+		strcpy(this->login, login);
 		return true;
 	}
 	else
@@ -219,6 +220,14 @@ vector<ClientInfo> Client::GetOnlineClientsList()
 }
 
 
+/*
+@Separate thread procedure for processing events from server.
+@It starts, when client joins chat(logined or recently registrated).
+@First message from server says kind of event:
+@	0 - call from other client
+@	1 - some client leaved chat
+@	2 - new client joined chat
+*/
 DWORD WINAPI ServListenProc(LPVOID lParam)
 {
 	char buff[Client::BUFF_LEN];
@@ -232,7 +241,24 @@ DWORD WINAPI ServListenProc(LPVOID lParam)
 		recv_len = recvfrom(client->udp_sock_serv, buff, Client::BUFF_LEN, 0, NULL, 0);
 		if (recv_len != -1)
 		{
-			printf("Got message from serv!");
+			char eventNumber = buff[0];
+			switch (eventNumber)
+			{
+			case 0:
+				//
+				Beep(500, 100);
+				break;
+			case 1:
+				//
+				Beep(500, 100);
+				break;
+			case 2:
+				//
+				Beep(500, 100);
+				break;
+			default:
+				break;
+			}
 		}
 	}
 	return 0;

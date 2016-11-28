@@ -11,14 +11,17 @@ private:
 	//inner controls
 	HWND hListCapsComboBox;
 	HWND hWebCamBox;
+	HWND hOnlineClientsListBox;
+	HMENU hMenu;
 	//methods
 	void Init();
 	void SetWinowTitle(char *newWndTitle);
-	void SetOnlineClientsLits(vector<ClientInfo> onlineClients);
+	void SetOnlineClientsList(vector<ClientInfo> onlineClients);
 	void InnerControlsProc(LPARAM, WORD);
 	void RefreshCapDeviceToComboBox();
 	void AddCapDeviceIndexToComboBox(int);
 	void AddCapDeviceToComboBox(CaptureDevice);
+	void RefreshControlsState();
 	//friend procs
 	friend LRESULT CALLBACK MainWndProc(
 		HWND,
