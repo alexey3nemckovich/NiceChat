@@ -2,6 +2,7 @@
 #include <mutex>
 #include <string>
 #include <winsock2.h>
+#include "ClientInfo.h"
 using namespace std;
 
 
@@ -19,6 +20,8 @@ private:
 	bool online;
 	HANDLE servListenThread;
 	HANDLE videoListenThread;
+	char name[STR_BUFF_SIZE];
+	char last_name[STR_BUFF_SIZE];
 	//Methods
 	Client();
 	~Client();
@@ -38,6 +41,19 @@ public:
 		const char *const pass,
 		char *err_message
 	);
+	bool IsOnline()
+	{
+		return online;
+	}
+	char* Name()
+	{
+		return name;
+	}
+	char* LastName()
+	{
+		return last_name;
+	}
+	vector<ClientInfo> GetOnlineClientsList();
 	bool TryConnectTo(char *login);
 	void LeaveChat();
 };

@@ -15,9 +15,13 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <memory.h>
+#include <memory>
 #include <tchar.h>
 #include <exception>
 #include <iostream>
 #include <vector>
+
+#define STR_BUFF_SIZE 50
+LPCWSTR PCharToLPCWSTR(char* str);
 
 // TODO: reference additional headers your program requires here

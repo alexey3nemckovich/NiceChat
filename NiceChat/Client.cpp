@@ -46,7 +46,7 @@ void Client::Init()
 	}
 	ZeroMemory(&udp_sock_serv_addr, sizeof(udp_sock_serv_addr));
 	udp_sock_serv_addr.sin_family = AF_INET;
-	udp_sock_serv_addr.sin_port = htons(1234);
+	udp_sock_serv_addr.sin_port = 0;// htons(1234);
 	udp_sock_serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	if (::bind(udp_sock_serv, (struct sockaddr*)&udp_sock_serv_addr, sizeof(udp_sock_serv_addr)))
 	{
@@ -69,7 +69,7 @@ void Client::Init()
 		ExitProcess(0);
 	}
 	udp_sock_video_addr.sin_family = AF_INET;	
-	udp_sock_video_addr.sin_port = htons(1324);
+	udp_sock_video_addr.sin_port = 0;// htons(1324);
 	udp_sock_video_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	if (::bind(udp_sock_video, (sockaddr*)&udp_sock_video_addr, sizeof(udp_sock_video_addr)))
 	{
@@ -169,6 +169,8 @@ bool Client::TryRegistrate(
 	{
 		online = true;
 		servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
+		strcpy(this->name, name);
+		strcpy(this->last_name, last_name);
 		return true;
 	}
 	else
@@ -190,6 +192,30 @@ void Client::LeaveChat()
 {
 	online = false;
 	WaitForSingleObject(servListenThread, INFINITE);
+}
+
+
+vector<ClientInfo> Client::GetOnlineClientsList()
+{
+	SOCKET tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
+	char buff[BUFF_LEN];
+	ZeroMemory(buff, BUFF_LEN);
+	connect(tcp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
+	buff[0] = 4;
+	send(tcp_sock, buff, 1, 0);
+	Sleep(5);
+	recv(tcp_sock, buff, BUFF_LEN, 0);
+	int countOnlineClients = ((int*)buff)[0];
+	ClientInfo clientInfo;
+	vector<ClientInfo> onlineClients;
+	for (int i = 0; i < countOnlineClients; i++)
+	{
+		recv(tcp_sock, buff, BUFF_LEN, 0);
+		strcpy(clientInfo.login, buff);
+		onlineClients.push_back(clientInfo);
+	}
+	closesocket(tcp_sock);
+	return onlineClients;
 }
 
 

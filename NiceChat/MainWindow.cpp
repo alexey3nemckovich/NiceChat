@@ -164,11 +164,34 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 
 void MainWindow::Show()
 {
+	if (client->IsOnline())
+	{
+		char newWndTitle[1000];
+		sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
+		SetWinowTitle(newWndTitle);
+		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
+		SetOnlineClientsLits(onlineClientsList);
+	}
 	RefreshCapDeviceToComboBox();
 	Window::Show();
 	camera->Open();
 	ResumeThread(webcamThread);
 	webCamThreadSuspended = false;
+}
+
+
+void MainWindow::SetWinowTitle(char *newWndTitle)
+{
+	LPCWSTR lpNewWndTitle;
+	lpNewWndTitle = PCharToLPCWSTR(newWndTitle);
+	SetWindowText(hWnd, lpNewWndTitle);
+	free((wchar_t*)lpNewWndTitle);
+}
+
+
+void MainWindow::SetOnlineClientsLits(vector<ClientInfo> onlineClients)
+{
+
 }
 
 

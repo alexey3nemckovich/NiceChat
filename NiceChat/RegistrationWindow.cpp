@@ -121,6 +121,10 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 					MessageBox(NULL, l_err_msg, L"Error", 0);
 					free((void*)l_err_msg);
 				}
+				else
+				{
+					windowManager->ShowWindow(WINDOW_TYPE::MAIN);
+				}
 			}
 			else
 			{
@@ -132,15 +136,6 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 			MessageBox(hWnd, L"You should fill all fields!", L"NiceChat", MB_OK);
 		}
 	}
-}
-
-
-LPCWSTR PCharToLPCWSTR(char* str)
-{
-	wchar_t *wtext = (wchar_t*)malloc(1000);
-	mbstowcs(wtext, str, strlen(str) + 1);
-	LPCWSTR ptr = wtext;
-	return ptr;
 }
 
 

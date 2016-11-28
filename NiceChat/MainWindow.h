@@ -13,6 +13,8 @@ private:
 	HWND hWebCamBox;
 	//methods
 	void Init();
+	void SetWinowTitle(char *newWndTitle);
+	void SetOnlineClientsLits(vector<ClientInfo> onlineClients);
 	void InnerControlsProc(LPARAM, WORD);
 	void RefreshCapDeviceToComboBox();
 	void AddCapDeviceIndexToComboBox(int);
