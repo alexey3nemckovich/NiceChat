@@ -100,8 +100,15 @@ void LoginWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 	{
 		if (AllFieldsFilled())
 		{
-			char* err_msg = nullptr;
-			client->TryLogin(login, pass, err_msg);
+			char err_msg[STR_BUFF_SIZE];
+			if (!client->TryLogin(login, pass, err_msg))
+			{
+				dialogManager->ShowError(err_msg);
+			}
+			else
+			{
+				windowManager->ShowWindow(WINDOW_TYPE::MAIN);
+			}
 		}
 		else
 		{

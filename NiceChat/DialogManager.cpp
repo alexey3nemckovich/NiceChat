@@ -44,3 +44,11 @@ HWND DialogManager::GetDialog(DIALOG_TYPE dlgType)
 		return NULL;
 	}
 }
+
+
+void DialogManager::ShowError(char *err_msg)
+{
+	LPCWSTR l_err_msg = PCharToLPCWSTR(err_msg);
+	MessageBox(NULL, l_err_msg, L"Error", 0);
+	free((void*)l_err_msg);
+}

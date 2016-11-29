@@ -34,6 +34,7 @@ private:
 	Client();
 	~Client();
 	void Init();
+	int TrySetTCPConnectionWithServ(SOCKET *sock);
 	friend DWORD WINAPI ServListenProc(LPVOID lParam);
 public:
 	static Client* GetInstance();

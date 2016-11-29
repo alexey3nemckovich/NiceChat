@@ -18,4 +18,5 @@ private:
 public:
 	static DialogManager* GetInstance();
 	void ShowDialog(DIALOG_TYPE);
+	void ShowError(char *msg);
 };

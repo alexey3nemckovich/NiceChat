@@ -101,6 +101,15 @@ void MainWindow::AddClientToListBox(char* clientLogin)
 }
 
 
+void MainWindow::RemoveClientFromListBox(char* clientLogin)
+{
+	LPCWSTR lpCLientLogin = PCharToLPCWSTR(clientLogin);
+	int index = SendMessage(hOnlineClientsListBox, LB_FINDSTRING, 0, (LPARAM)lpCLientLogin);
+	SendMessage(hOnlineClientsListBox, LB_DELETESTRING, index, 0);
+	free((void*)lpCLientLogin);
+}
+
+
 LRESULT CALLBACK MainWndProc(
 	HWND hWnd,
 	UINT message,
@@ -109,6 +118,7 @@ LRESULT CALLBACK MainWndProc(
 )
 {
 	static MainWindow* mainWindow;
+	static Client* client = Client::GetInstance();
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -131,8 +141,14 @@ LRESULT CALLBACK MainWndProc(
 			mainWindow->windowManager->ShowWindow(WINDOW_TYPE::REGISTRATION);
 			break;
 		case ID_M_LEAVE_CHAT:
+			client->LeaveChat();
+			mainWindow->RefreshControlsState();
 			break;
 		case ID_M_EXIT:
+			if (client->IsOnline())
+			{
+				client->LeaveChat();
+			}
 			DestroyWindow(hWnd);
 			break;
 		default:
@@ -142,7 +158,7 @@ LRESULT CALLBACK MainWndProc(
 	break;
 	case WM_CREATE:
 	{
-		
+		//code	
 	}
 	break;
 	case WM_PAINT:
@@ -154,8 +170,10 @@ LRESULT CALLBACK MainWndProc(
 	}
 	break;
 	case WM_DESTROY:
+	{
 		PostQuitMessage(0);
 		break;
+	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -202,7 +220,7 @@ void MainWindow::RefreshControlsState()
 	{
 		char newWndTitle[1000];
 		sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
-		SetWinowTitle(newWndTitle);
+		SetWindowTitle(newWndTitle);
 		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
 		SetOnlineClientsList(onlineClientsList);
 		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
@@ -215,11 +233,12 @@ void MainWindow::RefreshControlsState()
 		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
+		SetWindowTitle("NiceChat");
 	}
 }
 
 
-void MainWindow::SetWinowTitle(char *newWndTitle)
+void MainWindow::SetWindowTitle(char *newWndTitle)
 {
 	LPCWSTR lpNewWndTitle;
 	lpNewWndTitle = PCharToLPCWSTR(newWndTitle);

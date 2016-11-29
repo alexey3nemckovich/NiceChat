@@ -15,7 +15,7 @@ private:
 	HMENU hMenu;
 	//methods
 	void Init();
-	void SetWinowTitle(char *newWndTitle);
+	void SetWindowTitle(char *newWndTitle);
 	void SetOnlineClientsList(vector<ClientInfo> onlineClients);
 	void InnerControlsProc(LPARAM, WORD);
 	void RefreshCapDeviceToComboBox();
@@ -48,6 +48,7 @@ public:
 	void Show();
 	void Hide();
 	void AddClientToListBox(char* clientLogin);
+	void RemoveClientFromListBox(char* clientLogin);
 	MainWindow();
 	~MainWindow();
 };

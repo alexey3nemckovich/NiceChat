@@ -117,9 +117,7 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 				char err_msg[100];
 				if (!client->TryRegistrate(name, lastName, login, pass, err_msg))
 				{
-					LPCWSTR l_err_msg = PCharToLPCWSTR(err_msg);
-					MessageBox(NULL, l_err_msg, L"Error", 0);
-					free((void*)l_err_msg);
+					dialogManager->ShowError(err_msg);
 				}
 				else
 				{

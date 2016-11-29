@@ -94,27 +94,36 @@ bool Client::TryLogin(
 	char *err_message
 )
 {
-	SOCKET tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
-	char buff[BUFF_LEN];
-	ZeroMemory(buff, BUFF_LEN);
-	if (connect(tcp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)))
+	SOCKET tcp_sock;
+	if (TrySetTCPConnectionWithServ(&tcp_sock))
 	{
-		int connect_err = WSAGetLastError();
+		sprintf(err_message, "Failed to connect to server.");
 		return false;
 	}
-	buff[0] = 1;
-	send(tcp_sock, buff, 1, 0);
-	Sleep(5);
-	send(tcp_sock, login, strlen(login), 0);
-	Sleep(5);
-	send(tcp_sock, pass, strlen(pass), 0);
-	Sleep(5);
-	recv(tcp_sock, buff, BUFF_LEN, 0);
-	//check
+	char operationNumber = 1;
+	send(tcp_sock, &operationNumber, sizeof(operationNumber), 0);
+	Sleep(50);
+	send(tcp_sock, login, strlen(login) + 1, 0);
+	Sleep(50);
+	send(tcp_sock, pass, strlen(pass) + 1, 0);
+	Sleep(50);
+	//Check logination result
+	char buff[BUFF_LEN];
+	int recv_len = 0;
+	recv_len = recv(tcp_sock, buff, BUFF_LEN, 0);
 	closesocket(tcp_sock);
-	online = true;
-	servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
-	return true;
+ 	if (recv_len == 0)
+	{
+		online = true;
+		servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
+		strcpy(this->login, login);
+		return true;
+	}
+	else
+	{
+		strcpy(err_message, buff);
+		return false;
+	}
 }
 
 
@@ -126,32 +135,31 @@ bool Client::TryRegistrate(
 	char *err_message
 )
 {
-	SOCKET tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
-	char buff[BUFF_LEN];
-	ZeroMemory(buff, BUFF_LEN);
-	if (connect(tcp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)))
+	SOCKET tcp_sock;
+	if (TrySetTCPConnectionWithServ(&tcp_sock))
 	{
-		int connect_err = WSAGetLastError();
+		sprintf(err_message, "Failed to connect to server.");
 		return false;
 	}
 	//Send to server own properties
-	buff[0] = 0;
-	send(tcp_sock, buff, 1, 0);
-	Sleep(5);
-	send(tcp_sock, name, strlen(name), 0);
-	Sleep(5);
-	send(tcp_sock, last_name, strlen(last_name), 0);
-	Sleep(5);
-	send(tcp_sock, login, strlen(login), 0);
-	Sleep(5);
-	send(tcp_sock, pass, strlen(pass), 0);
-	Sleep(5);
+	char operationNumber = 0;
+	send(tcp_sock, &operationNumber, sizeof(operationNumber), 0);
+	Sleep(50);
+	send(tcp_sock, name, strlen(name) + 1, 0);
+	Sleep(50);
+	send(tcp_sock, last_name, strlen(last_name) + 1, 0);
+	Sleep(50);
+	send(tcp_sock, login, strlen(login) + 1, 0);
+	Sleep(50);
+	send(tcp_sock, pass, strlen(pass) + 1, 0);
+	Sleep(50);
 	//Send to server udp sockets addresses
 	send(tcp_sock, (char*)(&udp_sock_serv_addr), sizeof(udp_sock_serv_addr), 0);
-	Sleep(5);
+	Sleep(50);
 	send(tcp_sock, (char*)(&udp_sock_video_addr), sizeof(udp_sock_video_addr), 0);
-	Sleep(5);
+	Sleep(50);
 	//Check registration result
+	char buff[BUFF_LEN];
 	int recv_len = 0;
 	recv_len = recv(tcp_sock, buff, BUFF_LEN, 0);
 	closesocket(tcp_sock);
@@ -169,7 +177,17 @@ bool Client::TryRegistrate(
 		strcpy(err_message, buff);
 		return false;
 	}
-	//
+}
+
+
+int Client::TrySetTCPConnectionWithServ(SOCKET *sock)
+{
+	(*sock) = socket(AF_INET, SOCK_STREAM, 0);
+	if (connect((*sock), (struct sockaddr*)&server_addr, sizeof(server_addr)))
+	{
+		return WSAGetLastError();
+	}
+	return 0;
 }
 
 
@@ -181,6 +199,14 @@ bool Client::TryConnectTo(char *login)
 
 void Client::LeaveChat()
 {
+	SOCKET tcp_sock;
+	if (TrySetTCPConnectionWithServ(&tcp_sock) == 0)
+	{
+		char operationNumber = 3;
+		send(tcp_sock, &operationNumber, sizeof(operationNumber), 0);
+		Sleep(50);
+		send(tcp_sock, login, strlen(login) + 1, 0);
+	}
 	online = false;
 	WaitForSingleObject(servListenThread, INFINITE);
 }
@@ -194,7 +220,7 @@ vector<ClientInfo> Client::GetOnlineClientsList()
 	connect(tcp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	buff[0] = 4;
 	send(tcp_sock, buff, 1, 0);
-	Sleep(5);
+	Sleep(50);
 	recv(tcp_sock, buff, BUFF_LEN, 0);
 	int countOnlineClients = ((int*)buff)[0];
 	ClientInfo clientInfo;
@@ -268,7 +294,10 @@ void IncomingCall(SOCKET udp_sock_serv)
 
 void ClientLeaved(SOCKET udp_sock_serv)
 {
-
+	char buff[BUFF_LEN];
+	//recv leaved client login
+	recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
+	mainWindow->RemoveClientFromListBox(buff);
 }
 
 
