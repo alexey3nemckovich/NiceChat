@@ -93,6 +93,14 @@ void MainWindow::AddCapDeviceToComboBox(CaptureDevice capDevice)
 }
 
 
+void MainWindow::AddClientToListBox(char* clientLogin)
+{
+	LPCWSTR lpCLientLogin = PCharToLPCWSTR(clientLogin);
+	SendMessage(hOnlineClientsListBox, LB_ADDSTRING, 0, (LPARAM)lpCLientLogin);
+	free((void*)lpCLientLogin);
+}
+
+
 LRESULT CALLBACK MainWndProc(
 	HWND hWnd,
 	UINT message,

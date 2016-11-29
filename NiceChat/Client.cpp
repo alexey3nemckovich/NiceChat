@@ -1,9 +1,13 @@
 #include "stdafx.h"
 #include "Client.h"
+#include "MainWindow.h"
 using namespace std;
 
 
 DWORD WINAPI ServListenProc(LPVOID lParam);
+u_long I_BLOCKING_SOCKETS_MODE = FALSE;
+u_long I_NON_BLOCKING_SOCKETS_MODE = TRUE;
+MainWindow* mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::MAIN);
 
 
 Client::Client()
@@ -35,7 +39,6 @@ void Client::Init()
 		printf("WSAStart error %d\n", WSAGetLastError());
 		ExitProcess(0);
 	}
-	u_long iUdpSocketsMode = 1;
 	//Server listening socket
 	udp_sock_serv = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udp_sock_serv == INVALID_SOCKET)
@@ -49,7 +52,7 @@ void Client::Init()
 		ExitProcess(0);
 	}
 	//Enable non blocking socket mode
-	if (ioctlsocket(udp_sock_serv, FIONBIO, &iUdpSocketsMode))
+	if (ioctlsocket(udp_sock_serv, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE)))
 	{
 		ExitProcess(0);
 	}
@@ -66,7 +69,7 @@ void Client::Init()
 		ExitProcess(0);
 	}
 	//Enable non blocking socket mode
-	if (ioctlsocket(udp_sock_serv, FIONBIO, &iUdpSocketsMode))
+	if (ioctlsocket(udp_sock_serv, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE)))
 	{
 		ExitProcess(0);
 	}
@@ -148,11 +151,9 @@ bool Client::TryRegistrate(
 	Sleep(5);
 	send(tcp_sock, (char*)(&udp_sock_video_addr), sizeof(udp_sock_video_addr), 0);
 	Sleep(5);
-	online = true;
-	servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 	//Check registration result
 	int recv_len = 0;
-	recv_len = recv(tcp_sock, buff, Client::BUFF_LEN, 0);
+	recv_len = recv(tcp_sock, buff, BUFF_LEN, 0);
 	closesocket(tcp_sock);
 	if (recv_len == 0)
 	{
@@ -209,6 +210,11 @@ vector<ClientInfo> Client::GetOnlineClientsList()
 }
 
 
+void IncomingCall(SOCKET udp_sock_serv);
+void ClientLeaved(SOCKET udp_sock_serv);
+void ClientJoined(SOCKET udp_sock_serv);
+
+
 /*
 @Separate thread procedure for processing events from server.
 @It starts, when client joins chat(logined or recently registrated).
@@ -219,36 +225,57 @@ vector<ClientInfo> Client::GetOnlineClientsList()
 */
 DWORD WINAPI ServListenProc(LPVOID lParam)
 {
-	char buff[Client::BUFF_LEN];
-	ZeroMemory(buff, Client::BUFF_LEN);
+	char buff[BUFF_LEN];
+	ZeroMemory(buff, BUFF_LEN);
 	Client* client = Client::GetInstance();
-	sockaddr_in serv_addr;
-	int serv_addr_size;
+	SOCKET udp_sock_serv = client->udp_sock_serv;
+	/*sockaddr_in serv_addr;
+	int serv_addr_size;*/
 	int recv_len;
 	while (client->online)
 	{
-		recv_len = recvfrom(client->udp_sock_serv, buff, Client::BUFF_LEN, 0, NULL, 0);
+		recv_len = recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
 		if (recv_len != -1)
 		{
+			ioctlsocket(udp_sock_serv, FIONBIO, &(I_BLOCKING_SOCKETS_MODE));
 			char eventNumber = buff[0];
 			switch (eventNumber)
 			{
 			case 0:
-				//
-				Beep(500, 100);
+				IncomingCall(udp_sock_serv);
 				break;
 			case 1:
-				//
-				Beep(500, 100);
+				ClientLeaved(udp_sock_serv);
 				break;
 			case 2:
-				//
-				Beep(500, 100);
+				ClientJoined(udp_sock_serv);
 				break;
 			default:
 				break;
 			}
+			ioctlsocket(udp_sock_serv, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE));
 		}
 	}
 	return 0;
+}
+
+
+void IncomingCall(SOCKET udp_sock_serv)
+{
+
+}
+
+
+void ClientLeaved(SOCKET udp_sock_serv)
+{
+
+}
+
+
+void ClientJoined(SOCKET udp_sock_serv)
+{
+	char buff[BUFF_LEN];
+	//recv joined client login
+	recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
+	mainWindow->AddClientToListBox(buff);
 }

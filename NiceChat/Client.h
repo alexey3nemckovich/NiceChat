@@ -1,9 +1,17 @@
 #pragma once
+
+
+#define BUFF_LEN 1000
+#define SERVER_PORT 666
+#define STR_BUFF_SIZE 50
+
+
 #include <mutex>
 #include <string>
 #include <winsock2.h>
 #include "ClientInfo.h"
 #include "Network.h"
+#include "WindowManager.h"
 using namespace std;
 
 
@@ -11,8 +19,6 @@ class Client
 {
 private:
 	//Fields
-	const int SERVER_PORT = 666;
-	static const int BUFF_LEN = 1000000;
 	SOCKET udp_sock_serv;
 	SOCKET udp_sock_video;
 	sockaddr_in udp_sock_serv_addr;

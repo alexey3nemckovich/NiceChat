@@ -175,7 +175,7 @@
     <ClCompile Include="DialogManager.cpp" />
     <ClCompile Include="DialogProcedures.cpp" />
     <ClCompile Include="ImageProcesser.cpp" />
-    <ClCompile Include="Ntework.cpp" />
+    <ClCompile Include="Network.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="LoginWindow.cpp" />
     <ClCompile Include="Main.cpp">

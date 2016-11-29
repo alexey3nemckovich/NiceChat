@@ -47,6 +47,7 @@ private:
 public:
 	void Show();
 	void Hide();
+	void AddClientToListBox(char* clientLogin);
 	MainWindow();
 	~MainWindow();
 };

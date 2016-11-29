@@ -152,7 +152,7 @@
     <ClCompile Include="ImageProcesser.cpp">
       <Filter>Source Files\Image</Filter>
     </ClCompile>
-    <ClCompile Include="Ntework.cpp">
+    <ClCompile Include="Network.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
   </ItemGroup>
