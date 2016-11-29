@@ -111,16 +111,21 @@ bool Client::TryLogin(
 	char buff[BUFF_LEN];
 	int recv_len = 0;
 	recv_len = recv(tcp_sock, buff, BUFF_LEN, 0);
-	closesocket(tcp_sock);
- 	if (recv_len == 0)
+	if (recv_len)
 	{
+		recv(tcp_sock, buff, BUFF_LEN, 0);
+		strcpy(name, buff);
+		recv(tcp_sock, buff, BUFF_LEN, 0);
+		strcpy(last_name, buff);
+		strcpy(this->login, login);
 		online = true;
 		servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
-		strcpy(this->login, login);
+		closesocket(tcp_sock);
 		return true;
 	}
 	else
 	{
+		closesocket(tcp_sock);
 		strcpy(err_message, buff);
 		return false;
 	}
