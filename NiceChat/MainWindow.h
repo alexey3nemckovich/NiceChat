@@ -23,6 +23,7 @@ private:
 	void AddCapDeviceIndexToComboBox(int);
 	void AddCapDeviceToComboBox(CaptureDevice);
 	void RefreshControlsState();
+	int GetListBoxSelectedClient(char *selectedClient);
 	//friend procs
 	friend LRESULT CALLBACK MainWndProc(
 		HWND,

@@ -214,6 +214,46 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 			break;
 		}
 	}
+	if (hControl == hCallButton)
+	{
+		switch (controlMsg)
+		{
+		case BN_CLICKED:
+		{
+			char selectedClient[STR_BUFF_SIZE];
+			if (GetListBoxSelectedClient(selectedClient) != LB_ERR)
+			{
+				char err_msg[STR_BUFF_SIZE];
+				if (client->TryConnectTo(selectedClient, err_msg))
+				{
+
+				}
+				else
+				{
+					dialogManager->ShowError(err_msg);
+				}
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+}
+
+
+int MainWindow::GetListBoxSelectedClient(char *selectedClient)
+{
+	int itemIndex = (int)SendMessage(hOnlineClientsListBox, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+	if (itemIndex == LB_ERR)
+	{
+		return itemIndex;
+	}
+	int textLen = (int)SendMessage(hOnlineClientsListBox, LB_GETTEXTLEN, (WPARAM)itemIndex, 0);
+	TCHAR *clientToCall = new TCHAR[textLen + 1];
+	SendMessage(hOnlineClientsListBox, LB_GETTEXT, (WPARAM)itemIndex, (LPARAM)clientToCall);
+	CharToOem(clientToCall, selectedClient);
+	free(clientToCall);
 }
 
 

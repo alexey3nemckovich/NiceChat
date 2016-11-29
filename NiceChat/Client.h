@@ -50,6 +50,12 @@ public:
 		const char *const pass,
 		char *err_message
 	);
+	bool TryConnectTo(
+		const char const *destinyClient,
+		sockaddr_in &destinyAddr,
+		char *err_message
+	);
+	void LeaveChat();
 	bool IsOnline()
 	{
 		return online;
@@ -67,6 +73,4 @@ public:
 		return login;
 	}
 	vector<ClientInfo> GetOnlineClientsList();
-	bool TryConnectTo(char *login);
-	void LeaveChat();
 };

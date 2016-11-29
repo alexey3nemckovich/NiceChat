@@ -184,6 +184,36 @@ bool Client::TryRegistrate(
 }
 
 
+bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyAddr, char *err_message)
+{
+	SOCKET tcp_sock;
+	if (TrySetTCPConnectionWithServ(&tcp_sock))
+	{
+		sprintf(err_message, "Failed to connect to server.");
+		return false;
+	}
+	char operationNumber = 2;
+	send(tcp_sock, &operationNumber, sizeof(operationNumber), 0);
+	Sleep(50);
+	send(tcp_sock, login, strlen(login) + 1, 0);
+	Sleep(50);
+	send(tcp_sock, destinyClient, strlen(destinyClient) + 1, 0);
+	Sleep(50);
+	char buff[BUFF_LEN];
+	recv(tcp_sock, buff, BUFF_LEN, 0);
+	if (strcmp(buff, "call accepted") == 0)
+	{
+		recv(tcp_sock, buff, BUFF_LEN, 0);
+		destinyAddr = ((sockaddr_in*)buff)[0];
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
 int Client::TrySetTCPConnectionWithServ(SOCKET *sock)
 {
 	(*sock) = socket(AF_INET, SOCK_STREAM, 0);
@@ -192,12 +222,6 @@ int Client::TrySetTCPConnectionWithServ(SOCKET *sock)
 		return WSAGetLastError();
 	}
 	return 0;
-}
-
-
-bool Client::TryConnectTo(char *login)
-{
-	return true;
 }
 
 
