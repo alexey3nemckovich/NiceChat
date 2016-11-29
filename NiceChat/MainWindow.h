@@ -12,6 +12,7 @@ private:
 	HWND hListCapsComboBox;
 	HWND hWebCamBox;
 	HWND hOnlineClientsListBox;
+	HWND hCallButton;
 	HMENU hMenu;
 	//methods
 	void Init();

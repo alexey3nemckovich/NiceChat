@@ -109,9 +109,8 @@ bool Client::TryLogin(
 	Sleep(50);
 	//Check logination result
 	char buff[BUFF_LEN];
-	int recv_len = 0;
-	recv_len = recv(tcp_sock, buff, BUFF_LEN, 0);
-	if (recv_len)
+	recv(tcp_sock, buff, BUFF_LEN, 0);
+	if (strcmp(buff, "ok") == 0)
 	{
 		recv(tcp_sock, buff, BUFF_LEN, 0);
 		strcpy(name, buff);

@@ -46,10 +46,13 @@ void MainWindow::Init()
 		webCamBoxTop,
 		webCamBoxWidth,
 		webCamBoxHeight,
-		camBoxStyle);
+		camBoxStyle
+	);
+	int callBtnHeight = 60;
 	int clientsListBoxLeft = 40;
 	int clientsListBoxWidth = 200 - 10 - clientsListBoxLeft;
-	DWORD clientsListBoxStyle = LBS_HASSTRINGS | WS_BORDER | WS_VISIBLE | WS_CHILD;
+	int clientsListBoxHeight = webCamBoxHeight + 10 - callBtnHeight - 20;
+	DWORD clientsListBoxStyle = LBS_HASSTRINGS | LBS_STANDARD | WS_VISIBLE | WS_CHILD;
 	hOnlineClientsListBox = windowConstructor->CreateControl(
 		L"LISTBOX",
 		L"",
@@ -57,8 +60,19 @@ void MainWindow::Init()
 		clientsListBoxLeft,
 		webCamBoxTop,
 		clientsListBoxWidth,
-		webCamBoxHeight + 10,
-		clientsListBoxStyle);
+		clientsListBoxHeight,
+		clientsListBoxStyle
+	);
+	DWORD callButtonStyle;
+	hCallButton = windowConstructor->CreateControl(
+		L"BUTTON",
+		L"Call",
+		hWnd,
+		clientsListBoxLeft,
+		webCamBoxTop + clientsListBoxHeight + 10,
+		clientsListBoxWidth,
+		callBtnHeight
+	);
 	//init camera
 	//camera = new Camera(0, webCamBoxWidth, webCamBoxHeight, hWnd);
 }
@@ -223,6 +237,7 @@ void MainWindow::RefreshControlsState()
 		SetWindowTitle(newWndTitle);
 		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
 		SetOnlineClientsList(onlineClientsList);
+		EnableWindow(hCallButton, TRUE);
 		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
@@ -230,6 +245,7 @@ void MainWindow::RefreshControlsState()
 	else
 	{
 		SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
+		EnableWindow(hCallButton, FALSE);
 		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
