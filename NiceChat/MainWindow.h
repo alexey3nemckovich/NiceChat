@@ -41,9 +41,13 @@ private:
 	Camera* camera;
 	const ImageProcesser* imageProcesser;
 	vector<CaptureDevice> listCaps;
-	HANDLE webcamThread;
+	HANDLE hWebcamThread;
+	HANDLE hCallThread;
 	bool webCamThreadSuspended;
 	friend DWORD WINAPI CamRenderingProc(
+		CONST LPVOID lpParam
+	);
+	friend DWORD WINAPI CallProc(
 		CONST LPVOID lpParam
 	);
 public:
@@ -51,6 +55,7 @@ public:
 	void Hide();
 	void AddClientToListBox(char* clientLogin);
 	void RemoveClientFromListBox(char* clientLogin);
+	void StartCall(sockaddr_in destVideoListAddr);
 	MainWindow();
 	~MainWindow();
 };

@@ -2,8 +2,10 @@
 
 
 #define BUFF_LEN 1000
-#define SERVER_PORT 666
+#define SERVER_TCP_PORT 666
+#define SERVER_UDP_PORT 777
 #define STR_BUFF_SIZE 50
+#define CALL_ACCEPT_STR "accept"
 
 
 #include <mutex>
@@ -23,19 +25,20 @@ private:
 	SOCKET udp_sock_video;
 	sockaddr_in udp_sock_serv_addr;
 	sockaddr_in udp_sock_video_addr;
-	struct sockaddr_in server_addr;
 	bool online;
 	HANDLE servListenThread;
 	HANDLE videoListenThread;
 	char name[STR_BUFF_SIZE];
 	char last_name[STR_BUFF_SIZE];
 	char login[STR_BUFF_SIZE];
+	bool onCall = false;
 	//Methods
 	Client();
 	~Client();
 	void Init();
 	int TrySetTCPConnectionWithServ(SOCKET *sock);
 	friend DWORD WINAPI ServListenProc(LPVOID lParam);
+	friend void IncomingCall(SOCKET udp_sock_serv);
 public:
 	static Client* GetInstance();
 	bool TryLogin(
@@ -52,13 +55,25 @@ public:
 	);
 	bool TryConnectTo(
 		const char const *destinyClient,
-		sockaddr_in &destinyAddr,
+		sockaddr_in &destinyClientVideoListAddr,
 		char *err_message
 	);
 	void LeaveChat();
 	bool IsOnline()
 	{
 		return online;
+	}
+	bool IsOnCall()
+	{
+		return onCall;
+	}
+	void SetOnCall()
+	{
+		onCall = true;
+	}
+	void SetFree()
+	{
+		onCall = false;
 	}
 	char* Name()
 	{
@@ -73,4 +88,6 @@ public:
 		return login;
 	}
 	vector<ClientInfo> GetOnlineClientsList();
+	static sockaddr_in serv_tcp_addr;
+	static sockaddr_in serv_udp_addr;
 };

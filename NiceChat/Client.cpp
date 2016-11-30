@@ -4,6 +4,10 @@
 using namespace std;
 
 
+sockaddr_in Client::serv_tcp_addr;
+sockaddr_in Client::serv_udp_addr;
+
+
 DWORD WINAPI ServListenProc(LPVOID lParam);
 u_long I_BLOCKING_SOCKETS_MODE = FALSE;
 u_long I_NON_BLOCKING_SOCKETS_MODE = TRUE;
@@ -75,9 +79,10 @@ void Client::Init()
 	}
 	//Init server sock addr
 	char *SERVERADDR = "127.0.0.1";
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(SERVER_PORT);
-	server_addr.sin_addr.s_addr = inet_addr(SERVERADDR);
+	serv_tcp_addr.sin_family = serv_udp_addr.sin_family = AF_INET;
+	serv_tcp_addr.sin_addr.s_addr = serv_udp_addr.sin_addr.s_addr = inet_addr(SERVERADDR);
+	serv_tcp_addr.sin_port = htons(SERVER_TCP_PORT);
+	serv_udp_addr.sin_port = htons(SERVER_UDP_PORT);
 }
 
 
@@ -184,7 +189,7 @@ bool Client::TryRegistrate(
 }
 
 
-bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyAddr, char *err_message)
+bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyClientVideoListAddr, char *err_message)
 {
 	SOCKET tcp_sock;
 	if (TrySetTCPConnectionWithServ(&tcp_sock))
@@ -197,14 +202,15 @@ bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyA
 	Sleep(50);
 	send(tcp_sock, login, strlen(login) + 1, 0);
 	Sleep(50);
-	send(tcp_sock, destinyClient, strlen(destinyClient) + 1, 0);
-	Sleep(50);
 	char buff[BUFF_LEN];
+	send(tcp_sock, destinyClient, strlen(destinyClient) + 1, 0);
 	recv(tcp_sock, buff, BUFF_LEN, 0);
-	if (strcmp(buff, "call accepted") == 0)
+	if (strcmp(buff, CALL_ACCEPT_STR) == 0)
 	{
 		recv(tcp_sock, buff, BUFF_LEN, 0);
-		destinyAddr = ((sockaddr_in*)buff)[0];
+		destinyClientVideoListAddr = ((sockaddr_in*)buff)[0];
+		SetOnCall();
+		mainWindow->StartCall(destinyClientVideoListAddr);
 		return true;
 	}
 	else
@@ -217,7 +223,7 @@ bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyA
 int Client::TrySetTCPConnectionWithServ(SOCKET *sock)
 {
 	(*sock) = socket(AF_INET, SOCK_STREAM, 0);
-	if (connect((*sock), (struct sockaddr*)&server_addr, sizeof(server_addr)))
+	if (connect((*sock), (struct sockaddr*)&serv_tcp_addr, sizeof(serv_tcp_addr)))
 	{
 		return WSAGetLastError();
 	}
@@ -245,7 +251,8 @@ vector<ClientInfo> Client::GetOnlineClientsList()
 	SOCKET tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
 	char buff[BUFF_LEN];
 	ZeroMemory(buff, BUFF_LEN);
-	connect(tcp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
+	//mode
+	connect(tcp_sock, (struct sockaddr*)&serv_tcp_addr, sizeof(serv_tcp_addr));
 	buff[0] = 4;
 	send(tcp_sock, buff, 1, 0);
 	Sleep(50);
@@ -283,12 +290,13 @@ DWORD WINAPI ServListenProc(LPVOID lParam)
 	ZeroMemory(buff, BUFF_LEN);
 	Client* client = Client::GetInstance();
 	SOCKET udp_sock_serv = client->udp_sock_serv;
-	/*sockaddr_in serv_addr;
-	int serv_addr_size;*/
+	sockaddr_in serv_addr{};
+	int serv_addr_size;
 	int recv_len;
 	while (client->online)
 	{
 		recv_len = recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
+		//recv_len = recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, (sockaddr*)(&Client::serv_udp_addr), &serv_addr_size);
 		if (recv_len != -1)
 		{
 			ioctlsocket(udp_sock_serv, FIONBIO, &(I_BLOCKING_SOCKETS_MODE));
@@ -316,7 +324,15 @@ DWORD WINAPI ServListenProc(LPVOID lParam)
 
 void IncomingCall(SOCKET udp_sock_serv)
 {
-
+	static Client* client = Client::GetInstance();
+	//here ask client if he wants to accept call from 'somebody'
+	sendto(udp_sock_serv, CALL_ACCEPT_STR, strlen(CALL_ACCEPT_STR) + 1, 0, (sockaddr*)(&Client::serv_udp_addr), sizeof(Client::serv_udp_addr));
+	char buff[BUFF_LEN];
+	recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
+	sockaddr_in callerVideoListAddr;
+	callerVideoListAddr = ((sockaddr_in*)buff)[0];
+	client->SetOnCall();
+	mainWindow->StartCall(callerVideoListAddr);
 }
 
 
