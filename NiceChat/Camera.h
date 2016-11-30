@@ -1,4 +1,10 @@
 #pragma once
+
+
+#define CAM_FRAME_WIDTH 640
+#define CAM_FRAME_HEIGHT 480
+
+
 #include "CaptureDevice.h"
 #include "WindowManager.h"
 #include <opencv2\opencv.hpp>
@@ -9,8 +15,6 @@
 class Camera
 {
 private:
-	HWND hParentWnd;
-	HWND hCapWnd;
 	int capIndex;
 	int camsCount;
 	int frameWidth;
@@ -20,17 +24,22 @@ private:
 	cv::Mat lastFrame;
 	cv::VideoCapture capture;
 	bool isOpened;
-public:
-	Camera(int capIndex, int frameWidth, int frameHeight, HWND hWnd);
+	Camera();
 	~Camera();
+public:
+	void Open();
+	void Close();
+	bool IsOpened()
+	{
+		return isOpened;
+	}
+	bool IsAvailable();
+	cv::Mat GetFrame();
 	int GetCapDeviceNumber()
 	{
 		return capIndex;
 	}
 	void SetCapDeviceIndex(int index);
-	cv::Mat GetFrame();
-	void Open();
-	void Close();
-	static int GetCamsCount();
-	static std::vector<CaptureDevice> GetListFreeCaps();
+	static std::vector<int> GetListFreeCapsIndexes();
+	static Camera* GetInstance();
 };

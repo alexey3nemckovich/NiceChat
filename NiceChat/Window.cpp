@@ -100,3 +100,12 @@ void Window::MoveToCenter(HWND hWnd)
 	int height = wndRect.bottom - wndRect.top;
 	SetWindowPos(hWnd, NULL, screenCenter.x - width / 2, screenCenter.y - height / 2, width, height, 0);
 }
+
+
+void Window::SetText(HWND hWnd, char *newText)
+{
+	LPCWSTR lpNewText;
+	lpNewText = PCharToLPCWSTR(newText);
+	SetWindowText(hWnd, lpNewText);
+	free((wchar_t*)lpNewText);
+}

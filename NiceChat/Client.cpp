@@ -35,7 +35,9 @@ Client::~Client()
 void Client::Init()
 {
 	online = false;
-	servListenThread = NULL;
+	hServListenThread = NULL;
+	hSendFrameThread = NULL;
+	hRecvFrameThread = NULL;
 	//Initialise winsock lib
 	WSADATA wsaData;
 	if (WSAStartup(0x202, &wsaData))
@@ -73,7 +75,7 @@ void Client::Init()
 		ExitProcess(0);
 	}
 	//Enable non blocking socket mode
-	if (ioctlsocket(udp_sock_serv, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE)))
+	if (ioctlsocket(udp_sock_video, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE)))
 	{
 		ExitProcess(0);
 	}
@@ -123,7 +125,7 @@ bool Client::TryLogin(
 		strcpy(last_name, buff);
 		strcpy(this->login, login);
 		online = true;
-		servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
+		hServListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 		closesocket(tcp_sock);
 		return true;
 	}
@@ -175,7 +177,7 @@ bool Client::TryRegistrate(
 	if (recv_len == 0)
 	{
 		online = true;
-		servListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
+		hServListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 		strcpy(this->name, name);
 		strcpy(this->last_name, last_name);
 		strcpy(this->login, login);
@@ -189,7 +191,7 @@ bool Client::TryRegistrate(
 }
 
 
-bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyClientVideoListAddr, char *err_message)
+bool Client::TryConnectTo(const char const *destinyClient, char *err_message)
 {
 	SOCKET tcp_sock;
 	if (TrySetTCPConnectionWithServ(&tcp_sock))
@@ -208,10 +210,7 @@ bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyC
 	if (strcmp(buff, CALL_ACCEPT_STR) == 0)
 	{
 		recv(tcp_sock, buff, BUFF_LEN, 0);
-		destinyClientVideoListAddr = ((sockaddr_in*)buff)[0];
-		SetOnCall();
-		isCallInitiator = true;
-		mainWindow->StartCall(destinyClientVideoListAddr);
+		interlocutor_sock_addr = ((sockaddr_in*)buff)[0];
 		return true;
 	}
 	else
@@ -221,14 +220,33 @@ bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyC
 }
 
 
-int Client::TrySetTCPConnectionWithServ(SOCKET *sock)
+void Client::StartVideoExchange()
 {
-	(*sock) = socket(AF_INET, SOCK_STREAM, 0);
-	if (connect((*sock), (struct sockaddr*)&serv_tcp_addr, sizeof(serv_tcp_addr)))
-	{
-		return WSAGetLastError();
-	}
-	return 0;
+	onCall = true;
+	hSendFrameThread = CreateThread(NULL, 0, &SendFrameThreadProc, NULL, 0, 0);
+	hRecvFrameThread = CreateThread(NULL, 0, &RecvFrameThreadProc, NULL, 0, 0);
+}
+
+
+void Client::EndVideoExchange()
+{
+	onCall = false;
+	WaitForSingleObject(hSendFrameThread, INFINITE);
+	WaitForSingleObject(hRecvFrameThread, INFINITE);
+}
+
+
+void Client::SendFrame(cv::Mat frame)
+{
+	sendto(udp_sock_video, "!", 2, 0, (sockaddr*)&interlocutor_sock_addr, sizeof(interlocutor_sock_addr));
+}
+
+
+cv::Mat Client::RecvFrame()
+{
+	static char buff[BUFF_LEN];
+	recvfrom(udp_sock_video, buff, BUFF_LEN, 0, NULL, 0);
+	return cv::Mat();
 }
 
 
@@ -243,7 +261,7 @@ void Client::LeaveChat()
 		send(tcp_sock, login, strlen(login) + 1, 0);
 	}
 	online = false;
-	WaitForSingleObject(servListenThread, INFINITE);
+	WaitForSingleObject(hServListenThread, INFINITE);
 }
 
 
@@ -269,6 +287,17 @@ vector<ClientInfo> Client::GetOnlineClientsList()
 	}
 	closesocket(tcp_sock);
 	return onlineClients;
+}
+
+
+int Client::TrySetTCPConnectionWithServ(SOCKET *sock)
+{
+	(*sock) = socket(AF_INET, SOCK_STREAM, 0);
+	if (connect((*sock), (struct sockaddr*)&serv_tcp_addr, sizeof(serv_tcp_addr)))
+	{
+		return WSAGetLastError();
+	}
+	return 0;
 }
 
 
@@ -327,13 +356,17 @@ void IncomingCall(SOCKET udp_sock_serv)
 {
 	static Client* client = Client::GetInstance();
 	//here ask client if he wants to accept call from 'somebody'
-	sendto(udp_sock_serv, CALL_ACCEPT_STR, strlen(CALL_ACCEPT_STR) + 1, 0, (sockaddr*)(&Client::serv_udp_addr), sizeof(Client::serv_udp_addr));
+	sendto(udp_sock_serv, 
+		CALL_ACCEPT_STR, 
+		strlen(CALL_ACCEPT_STR) + 1, 
+		0, 
+		(sockaddr*)(&Client::serv_udp_addr),
+		sizeof(Client::serv_udp_addr)
+	);
 	char buff[BUFF_LEN];
 	recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
-	sockaddr_in callerVideoListAddr;
-	callerVideoListAddr = ((sockaddr_in*)buff)[0];
+	client->interlocutor_sock_addr = ((sockaddr_in*)buff)[0];
 	client->SetOnCall();
-	mainWindow->StartCall(callerVideoListAddr);
 }
 
 
@@ -352,4 +385,31 @@ void ClientJoined(SOCKET udp_sock_serv)
 	//recv joined client login
 	recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
 	mainWindow->AddClientToListBox(buff);
+}
+
+
+DWORD WINAPI SendFrameThreadProc(LPVOID lpParam)
+{
+	static Camera* cam = Camera::GetInstance();
+	static Client* client = Client::GetInstance();
+	static cv::Mat frame;
+	while (client->IsOnCall())
+	{
+		frame = cam->GetFrame();
+		client->SendFrame(frame);
+	}
+}
+
+
+DWORD WINAPI RecvFrameThreadProc(LPVOID lpParam)
+{
+	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
+		->GetWindow(WINDOW_TYPE::MAIN);
+	static Client* client = Client::GetInstance();
+	static cv::Mat frame;
+	while (client->IsOnCall())
+	{
+		frame = client->RecvFrame();
+		mainWnd->DrawCamFrame(frame);
+	}
 }

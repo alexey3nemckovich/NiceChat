@@ -2,12 +2,9 @@
 #include "Camera.h"
 
 
-Camera::Camera(int capIndex, int frameWidth, int frameHeight, HWND hWnd)
+Camera::Camera()
 {
-	this->capIndex = capIndex;
-	this->hParentWnd = hWnd;
-	this->frameWidth = frameWidth;
-	this->frameHeight = frameHeight;
+	capIndex = 0;
 	Init();
 }
 
@@ -15,25 +12,51 @@ Camera::Camera(int capIndex, int frameWidth, int frameHeight, HWND hWnd)
 void Camera::Init()
 {
 	isOpened = false;
-	capture = cv::VideoCapture();	
+	capture = cv::VideoCapture();
 }
 
 
 Camera::~Camera()
 {
-	if (isOpened) 
+	if (isOpened)
 	{
 		Close();
 	}
 }
 
 
+Camera* Camera::GetInstance()
+{
+	static Camera camera;
+	return &camera;
+}
+
+
 void Camera::Open()
 {
 	capture.open(capIndex);
-	capture.set(CV_CAP_PROP_FRAME_WIDTH, frameWidth);
-	capture.set(CV_CAP_PROP_FRAME_HEIGHT, frameHeight);
+	capture.set(CV_CAP_PROP_FRAME_WIDTH, CAM_FRAME_WIDTH);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT, CAM_FRAME_HEIGHT);
 	isOpened = true;
+}
+
+
+void Camera::Close()
+{
+	capture.release();
+	isOpened = false;
+}
+
+
+bool Camera::IsAvailable()
+{
+	cv::VideoCapture vc;
+	if (vc.open(capIndex))
+	{
+		vc.release();
+		return true;
+	}
+	return false;
 }
 
 
@@ -59,37 +82,16 @@ void Camera::SetCapDeviceIndex(int index)
 }
 
 
-void Camera::Close()
+std::vector<int> Camera::GetListFreeCapsIndexes()
 {
-	capture.release();
-	isOpened = false;
-}
-
-
-int Camera::GetCamsCount()
-{
+	std::vector<int> freeCapsIndexes;
 	cv::VideoCapture vc;
-	int index = -1;
-	bool notSuchIndexCam = false;
-	while (!notSuchIndexCam)
-	{
-		index++;
-		if (!vc.open(index))
-		{
-			notSuchIndexCam = true;
-		}
-	}
-	return index;
-}
-
-
-std::vector<CaptureDevice> Camera::GetListCaps()
-{
-	std::vector<CaptureDevice> listCaps(0);
-	CaptureDevice capDevice;
 	for (int i = 0; i < 10; i++)
 	{
-
+		if (vc.open(i))
+		{
+			freeCapsIndexes.push_back(i);
+		}
 	}
-	return listCaps;
+	return freeCapsIndexes;
 }

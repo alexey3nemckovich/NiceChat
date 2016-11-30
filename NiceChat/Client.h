@@ -11,6 +11,7 @@
 #include <mutex>
 #include <string>
 #include <winsock2.h>
+#include <opencv2\opencv.hpp>
 #include "ClientInfo.h"
 #include "Network.h"
 #include "WindowManager.h"
@@ -25,20 +26,23 @@ private:
 	SOCKET udp_sock_video;
 	sockaddr_in udp_sock_serv_addr;
 	sockaddr_in udp_sock_video_addr;
+	sockaddr_in interlocutor_sock_addr;
 	bool online;
-	HANDLE servListenThread;
-	HANDLE videoListenThread;
+	HANDLE hServListenThread;
+	HANDLE hSendFrameThread;
+	HANDLE hRecvFrameThread;
 	char name[STR_BUFF_SIZE];
 	char last_name[STR_BUFF_SIZE];
 	char login[STR_BUFF_SIZE];
 	bool onCall = false;
-	bool isCallInitiator = false;
 	//Methods
 	Client();
 	~Client();
 	void Init();
 	int TrySetTCPConnectionWithServ(SOCKET *sock);
 	friend DWORD WINAPI ServListenProc(LPVOID lParam);
+	friend DWORD WINAPI SendFrameThreadProc(LPVOID lpParam);
+	friend DWORD WINAPI RecvFrameThreadProc(LPVOID lpParam);
 	friend void IncomingCall(SOCKET udp_sock_serv);
 public:
 	static Client* GetInstance();
@@ -56,9 +60,12 @@ public:
 	);
 	bool TryConnectTo(
 		const char const *destinyClient,
-		sockaddr_in &destinyClientVideoListAddr,
 		char *err_message
 	);
+	void StartVideoExchange();
+	void EndVideoExchange();
+	void SendFrame(cv::Mat frame);
+	cv::Mat RecvFrame();
 	void LeaveChat();
 	bool IsOnline()
 	{
@@ -67,10 +74,6 @@ public:
 	bool IsOnCall()
 	{
 		return onCall;
-	}
-	bool IsCallInitiator()
-	{
-		return isCallInitiator;
 	}
 	void SetOnCall()
 	{

@@ -13,17 +13,16 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-	if (hWebcamThread != NULL)
+	if (hRenderWebcamThread != NULL)
 	{
 		isAlive = false;
-		if (webCamThreadSuspended)
+		if (webCamRenderThreadSuspended)
 		{
-			ResumeThread(hWebcamThread);
+			ResumeThread(hRenderWebcamThread);
 		}
-		WaitForSingleObject(hWebcamThread, INFINITE);
-		CloseHandle(hWebcamThread);
-		hWebcamThread = NULL;
-		delete(camera);
+		WaitForSingleObject(hRenderWebcamThread, INFINITE);
+		CloseHandle(hRenderWebcamThread);
+		hRenderWebcamThread = NULL;	
 	}
 }
 
@@ -32,7 +31,7 @@ void MainWindow::Init()
 {
 	isAlive = true;
 	imageProcesser = ImageProcesser::GetInstance();
-	//webcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
+	//hRenderWebcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
 	//webCamThreadSuspended = true;
 	//init conrtols
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
@@ -73,20 +72,93 @@ void MainWindow::Init()
 		clientsListBoxWidth,
 		callBtnHeight
 	);
-	//init camera
-	//camera = new Camera(0, webCamBoxWidth, webCamBoxHeight, hWnd);
+	hSendFrameThread = NULL;
+	hRecvFrameThread = NULL;
+	camera = Camera::GetInstance();
 }
 
 
-void MainWindow::RefreshCapDeviceToComboBox()
+void MainWindow::Show()
+{
+	RefreshControls();
+	RefreshCameraComponents();
+	if (camera != NULL)
+	{
+		camera->Open();
+	}
+	Window::Show();
+	//ResumeThread(hRenderWebcamThread);
+	//webCamThreadSuspended = false;
+}
+
+
+void MainWindow::Hide()
+{
+	//SuspendThread(webcamThread);
+	//webCamThreadSuspended = true;
+	if (camera != NULL)
+	{
+		camera->Close();
+	}
+	Window::Hide();
+}
+
+
+void MainWindow::RefreshControls()
+{
+	if (client->IsOnline())
+	{
+		char newWndTitle[1000];
+		sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
+		Window::SetText(hWnd, newWndTitle);
+		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
+		SetOnlineClientsList(onlineClientsList);
+		EnableWindow(hCallButton, TRUE);
+		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
+		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
+		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
+	}
+	else
+	{
+		SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
+		EnableWindow(hCallButton, FALSE);
+		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
+		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
+		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
+		Window::SetText(hWnd, "NiceChat");
+	}
+}
+
+
+void MainWindow::RefreshCameraComponents()
 {
 	SendMessage(hListCapsComboBox, CB_RESETCONTENT, 0, 0);
-	//listCaps = Camera::GetListCaps();
-	int countListCaps = Camera::GetCamsCount();
-	for (int i = 0; i < countListCaps; i++)
+	vector<int> freeCapsIndexes = Camera::GetListFreeCapsIndexes();
+	for each(int capIndex in freeCapsIndexes)
 	{
-		//AddCapDeviceToComboBox(listCaps[i]);
-		AddCapDeviceIndexToComboBox(i);
+		AddCapDeviceIndexToComboBox(capIndex);
+	}
+	if (freeCapsIndexes.size())
+	{
+		if (!camera->IsAvailable())
+		{
+			camera->SetCapDeviceIndex(freeCapsIndexes[0]);
+		}
+	}
+}
+
+
+void MainWindow::SetOnlineClientsList(vector<ClientInfo> onlineClients)
+{
+	int countOnlineClients = onlineClients.size();
+	for (int i = 0; i < countOnlineClients; i++)
+	{
+		if (strcmp(onlineClients[i].login, client->Login()) != 0)
+		{
+			LPCWSTR lpStr = PCharToLPCWSTR(onlineClients[i].login);
+			SendMessage(hOnlineClientsListBox, LB_ADDSTRING, 0, (LPARAM)lpStr);
+			free((wchar_t*)lpStr);
+		}
 	}
 }
 
@@ -124,6 +196,21 @@ void MainWindow::RemoveClientFromListBox(char* clientLogin)
 }
 
 
+int MainWindow::GetListBoxSelectedClient(char *selectedClient)
+{
+	int itemIndex = (int)SendMessage(hOnlineClientsListBox, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+	if (itemIndex == LB_ERR)
+	{
+		return itemIndex;
+	}
+	int textLen = (int)SendMessage(hOnlineClientsListBox, LB_GETTEXTLEN, (WPARAM)itemIndex, 0);
+	TCHAR *clientToCall = new TCHAR[textLen + 1];
+	SendMessage(hOnlineClientsListBox, LB_GETTEXT, (WPARAM)itemIndex, (LPARAM)clientToCall);
+	CharToOem(clientToCall, selectedClient);
+	free(clientToCall);
+}
+
+
 LRESULT CALLBACK MainWndProc(
 	HWND hWnd,
 	UINT message,
@@ -156,7 +243,7 @@ LRESULT CALLBACK MainWndProc(
 			break;
 		case ID_M_LEAVE_CHAT:
 			client->LeaveChat();
-			mainWindow->RefreshControlsState();
+			mainWindow->RefreshControls();
 			break;
 		case ID_M_EXIT:
 			if (client->IsOnline())
@@ -224,10 +311,9 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 			if (GetListBoxSelectedClient(selectedClient) != LB_ERR)
 			{
 				char err_msg[STR_BUFF_SIZE];
-				sockaddr_in destClientVideoListAddr;
-				if (client->TryConnectTo(selectedClient, destClientVideoListAddr,err_msg))
+				if (client->TryConnectTo(selectedClient, err_msg))
 				{
-					//code
+					StartVideoExchange();
 				}
 				else
 				{
@@ -243,173 +329,44 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 }
 
 
-int MainWindow::GetListBoxSelectedClient(char *selectedClient)
+void MainWindow::StartVideoExchange()
 {
-	int itemIndex = (int)SendMessage(hOnlineClientsListBox, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-	if (itemIndex == LB_ERR)
-	{
-		return itemIndex;
-	}
-	int textLen = (int)SendMessage(hOnlineClientsListBox, LB_GETTEXTLEN, (WPARAM)itemIndex, 0);
-	TCHAR *clientToCall = new TCHAR[textLen + 1];
-	SendMessage(hOnlineClientsListBox, LB_GETTEXT, (WPARAM)itemIndex, (LPARAM)clientToCall);
-	CharToOem(clientToCall, selectedClient);
-	free(clientToCall);
+	hSendFrameThread = CreateThread(NULL, 0, &SendFrameThreadProc, NULL, 0, 0);
+	hRecvFrameThread = CreateThread(NULL, 0, &RecvFrameThreadProc, NULL, 0, 0);
+	Window::SetText(hCallButton, "Close");
 }
 
 
-void MainWindow::Show()
+void MainWindow::EndVideoExchange()
 {
-	RefreshControlsState();
-	Window::Show();
-	//camera->Open();
-	//ResumeThread(webcamThread);
-	//webCamThreadSuspended = false;
+	WaitForSingleObject(hSendFrameThread, INFINITE);
+	WaitForSingleObject(hRecvFrameThread, INFINITE);
+	Window::SetText(hCallButton, "Call");
 }
 
 
-void MainWindow::RefreshControlsState()
-{
-	//RefreshCapDeviceToComboBox();
-	if (client->IsOnline())
-	{
-		char newWndTitle[1000];
-		sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
-		SetWindowTitle(newWndTitle);
-		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
-		SetOnlineClientsList(onlineClientsList);
-		EnableWindow(hCallButton, TRUE);
-		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
-		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
-		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
-	}
-	else
-	{
-		SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
-		EnableWindow(hCallButton, FALSE);
-		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
-		SetWindowTitle("NiceChat");
-	}
-}
-
-
-void MainWindow::SetWindowTitle(char *newWndTitle)
-{
-	LPCWSTR lpNewWndTitle;
-	lpNewWndTitle = PCharToLPCWSTR(newWndTitle);
-	SetWindowText(hWnd, lpNewWndTitle);
-	free((wchar_t*)lpNewWndTitle);
-}
-
-
-void MainWindow::SetOnlineClientsList(vector<ClientInfo> onlineClients)
-{
-	int countOnlineClients = onlineClients.size();
-	for (int i = 0; i < countOnlineClients; i++)
-	{
-		if (strcmp(onlineClients[i].login, client->Login()) != 0)
-		{
-			LPCWSTR lpStr = PCharToLPCWSTR(onlineClients[i].login);
-			SendMessage(hOnlineClientsListBox, LB_ADDSTRING, 0, (LPARAM)lpStr);
-			free((wchar_t*)lpStr);
-		}
-	}
-}
-
-
-void MainWindow::Hide()
-{
-	//SuspendThread(webcamThread);
-	//webCamThreadSuspended = true;
-	//camera->Close();
-	Window::Hide();
-}
-
-
-void MainWindow::StartCall(sockaddr_in destVideoListAddr)
-{
-	hCallThread = CreateThread(NULL, 0, &(CallProc), &destVideoListAddr, 0, 0);
-}
-
-
-DWORD WINAPI CamRenderingProc(CONST LPVOID lParam)
+DWORD WINAPI CamRenderThreadProc(CONST LPVOID lParam)
 {
 	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
 		->GetWindow(WINDOW_TYPE::MAIN);
-	static HWND hCamBox = mainWnd->hWebCamBox;
-	static Camera* cam = mainWnd->camera;
-	static const ImageProcesser* imageProcesser = mainWnd->imageProcesser;
-	static HDC hCamBoxDC;
-	static HDC hBuffDC = CreateCompatibleDC(NULL);
+	static Camera* cam = Camera::GetInstance();
 	static cv::Mat camFrame;
-	static const int webCamBoxWidth = mainWnd->webCamBoxWidth;
-	static const int webCamBoxHeight = mainWnd->webCamBoxHeight;
 	while (mainWnd->isAlive)
 	{
 		camFrame = cam->GetFrame();
-		HBITMAP cross = imageProcesser->ConvertCVMatToHBITMAP(camFrame);
-		SelectObject(hBuffDC, cross);
-		hCamBoxDC = GetDC(hCamBox);
-		BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
-		ReleaseDC(hCamBox, hCamBoxDC);
+		mainWnd->DrawCamFrame(camFrame);
 	}
 	return 0;
 }
 
 
-void DrawCamFrame(cv::Mat mat);
-
-
-DWORD WINAPI CallProc(CONST LPVOID lpParam)
+void MainWindow::DrawCamFrame(cv::Mat frame)
 {
-	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
-		->GetWindow(WINDOW_TYPE::MAIN);
-	static Camera* cam = mainWnd->camera;
-	static Client* client = mainWnd->client;
-	static cv::Mat sendFrame;
-	static cv::Mat recvFrame;
-	sockaddr_in destAddr = ((sockaddr_in*)lpParam)[0];
-	bool isCallInitiator = client->IsCallInitiator();
-	while (client->IsOnCall())
-	{
-		if (isCallInitiator)
-		{
-			sendFrame = cam->GetFrame();
-			//code mat
-			//send
-			//---
-			//recv
-			//encode mat
-		}
-		else
-		{
-			//recv
-			//encode mat
-			sendFrame = cam->GetFrame();
-			//code mat
-			//send
-		}
-		DrawCamFrame(recvFrame);
-	}
-	return 0;
-}
-
-
-void DrawCamFrame(cv::Mat frame)
-{
-	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
-		->GetWindow(WINDOW_TYPE::MAIN);
-	static const ImageProcesser* imageProcesser = mainWnd->imageProcesser;
-	static HWND hCamBox = mainWnd->hWebCamBox;
 	static HDC hBuffDC = CreateCompatibleDC(NULL);
-	static const int webCamBoxWidth = mainWnd->webCamBoxWidth;
-	static const int webCamBoxHeight = mainWnd->webCamBoxHeight;
 	static HDC hCamBoxDC;
 	HBITMAP hBmpFrame = imageProcesser->ConvertCVMatToHBITMAP(frame);
 	SelectObject(hBuffDC, hBmpFrame);
-	hCamBoxDC = GetDC(hCamBox);
+	hCamBoxDC = GetDC(hWebCamBox);
 	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
-	ReleaseDC(hCamBox, hCamBoxDC);
+	ReleaseDC(hWebCamBox, hCamBoxDC);
 }

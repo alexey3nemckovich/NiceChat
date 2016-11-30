@@ -16,13 +16,12 @@ private:
 	HMENU hMenu;
 	//methods
 	void Init();
-	void SetWindowTitle(char *newWndTitle);
 	void SetOnlineClientsList(vector<ClientInfo> onlineClients);
 	void InnerControlsProc(LPARAM, WORD);
-	void RefreshCapDeviceToComboBox();
 	void AddCapDeviceIndexToComboBox(int);
 	void AddCapDeviceToComboBox(CaptureDevice);
-	void RefreshControlsState();
+	void RefreshControls();
+	void RefreshCameraComponents();
 	int GetListBoxSelectedClient(char *selectedClient);
 	//friend procs
 	friend LRESULT CALLBACK MainWndProc(
@@ -31,7 +30,6 @@ private:
 		WPARAM,
 		LPARAM
 	);
-	friend void DrawCamFrame(cv::Mat frame);
 	//fields
 	bool isAlive;
 	const int webCamBoxLeft = 200;
@@ -42,21 +40,19 @@ private:
 	Camera* camera;
 	const ImageProcesser* imageProcesser;
 	vector<CaptureDevice> listCaps;
-	HANDLE hWebcamThread;
-	HANDLE hCallThread;
-	bool webCamThreadSuspended;
-	friend DWORD WINAPI CamRenderingProc(
-		CONST LPVOID lpParam
-	);
-	friend DWORD WINAPI CallProc(
-		CONST LPVOID lpParam
+	HANDLE hRenderWebcamThread;
+	HANDLE hSendFrameThread;
+	HANDLE hRecvFrameThread;
+	bool webCamRenderThreadSuspended;
+	friend DWORD WINAPI CamRenderThreadProc(
+		CONST LPVOID lParam
 	);
 public:
 	void Show();
 	void Hide();
 	void AddClientToListBox(char* clientLogin);
 	void RemoveClientFromListBox(char* clientLogin);
-	void StartCall(sockaddr_in destVideoListAddr);
+	void DrawCamFrame(cv::Mat frame);
 	MainWindow();
 	~MainWindow();
 };
