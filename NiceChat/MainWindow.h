@@ -31,6 +31,7 @@ private:
 		WPARAM,
 		LPARAM
 	);
+	friend void DrawCamFrame(cv::Mat frame);
 	//fields
 	bool isAlive;
 	const int webCamBoxLeft = 200;

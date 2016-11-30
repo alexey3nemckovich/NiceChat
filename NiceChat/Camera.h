@@ -32,5 +32,5 @@ public:
 	void Open();
 	void Close();
 	static int GetCamsCount();
-	static std::vector<CaptureDevice> GetListCaps();
+	static std::vector<CaptureDevice> GetListFreeCaps();
 };

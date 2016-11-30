@@ -210,6 +210,7 @@ bool Client::TryConnectTo(const char const *destinyClient, sockaddr_in &destinyC
 		recv(tcp_sock, buff, BUFF_LEN, 0);
 		destinyClientVideoListAddr = ((sockaddr_in*)buff)[0];
 		SetOnCall();
+		isCallInitiator = true;
 		mainWindow->StartCall(destinyClientVideoListAddr);
 		return true;
 	}

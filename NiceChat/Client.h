@@ -32,6 +32,7 @@ private:
 	char last_name[STR_BUFF_SIZE];
 	char login[STR_BUFF_SIZE];
 	bool onCall = false;
+	bool isCallInitiator = false;
 	//Methods
 	Client();
 	~Client();
@@ -66,6 +67,10 @@ public:
 	bool IsOnCall()
 	{
 		return onCall;
+	}
+	bool IsCallInitiator()
+	{
+		return isCallInitiator;
 	}
 	void SetOnCall()
 	{

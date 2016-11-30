@@ -330,7 +330,7 @@ void MainWindow::Hide()
 
 void MainWindow::StartCall(sockaddr_in destVideoListAddr)
 {
-	hCallThread = CreateThread(NULL, 0, &(CallProc), NULL, 0, 0);
+	hCallThread = CreateThread(NULL, 0, &(CallProc), &destVideoListAddr, 0, 0);
 }
 
 
@@ -359,28 +359,57 @@ DWORD WINAPI CamRenderingProc(CONST LPVOID lParam)
 }
 
 
+void DrawCamFrame(cv::Mat mat);
+
+
 DWORD WINAPI CallProc(CONST LPVOID lpParam)
 {
 	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
 		->GetWindow(WINDOW_TYPE::MAIN);
-	static Client* client = mainWnd->client;
-	static HWND hCamBox = mainWnd->hWebCamBox;
 	static Camera* cam = mainWnd->camera;
-	static const ImageProcesser* imageProcesser = mainWnd->imageProcesser;
-	static HDC hCamBoxDC;
-	static HDC hBuffDC = CreateCompatibleDC(NULL);
-	static cv::Mat camFrame;
-	static const int webCamBoxWidth = mainWnd->webCamBoxWidth;
-	static const int webCamBoxHeight = mainWnd->webCamBoxHeight;
+	static Client* client = mainWnd->client;
+	static cv::Mat sendFrame;
+	static cv::Mat recvFrame;
+	sockaddr_in destAddr = ((sockaddr_in*)lpParam)[0];
+	bool isCallInitiator = client->IsCallInitiator();
 	while (client->IsOnCall())
 	{
-		camFrame = cam->GetFrame();
-		HBITMAP cross = imageProcesser->ConvertCVMatToHBITMAP(camFrame);
-
-		SelectObject(hBuffDC, cross);
-		hCamBoxDC = GetDC(hCamBox);
-		BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
-		ReleaseDC(hCamBox, hCamBoxDC);
+		if (isCallInitiator)
+		{
+			sendFrame = cam->GetFrame();
+			//code mat
+			//send
+			//---
+			//recv
+			//encode mat
+		}
+		else
+		{
+			//recv
+			//encode mat
+			sendFrame = cam->GetFrame();
+			//code mat
+			//send
+		}
+		DrawCamFrame(recvFrame);
 	}
 	return 0;
+}
+
+
+void DrawCamFrame(cv::Mat frame)
+{
+	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
+		->GetWindow(WINDOW_TYPE::MAIN);
+	static const ImageProcesser* imageProcesser = mainWnd->imageProcesser;
+	static HWND hCamBox = mainWnd->hWebCamBox;
+	static HDC hBuffDC = CreateCompatibleDC(NULL);
+	static const int webCamBoxWidth = mainWnd->webCamBoxWidth;
+	static const int webCamBoxHeight = mainWnd->webCamBoxHeight;
+	static HDC hCamBoxDC;
+	HBITMAP hBmpFrame = imageProcesser->ConvertCVMatToHBITMAP(frame);
+	SelectObject(hBuffDC, hBmpFrame);
+	hCamBoxDC = GetDC(hCamBox);
+	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
+	ReleaseDC(hCamBox, hCamBoxDC);
 }
