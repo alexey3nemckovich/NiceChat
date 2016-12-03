@@ -20,7 +20,7 @@ private:
 	HMENU hMenu;
 	//methods
 	void Init();
-	void SetOnlineClientsList(vector<ClientInfo> onlineClients);
+	void RefreshOnlineClientsList();
 	void InnerControlsProc(LPARAM, WORD);
 	void AddCapDeviceIndexToComboBox(int);
 	void AddCapDeviceToComboBox(CaptureDevice);
@@ -60,8 +60,9 @@ public:
 	void RemoveClientFromListBox(char* clientLogin);
 	void RenderMatFrame(cv::Mat frame);
 	void RenderFrame(const uchar* frameData);
-	void StartCallTo(char *clientLogin);
-	void EndCall();
+	void CallClick(char *clientLogin);
+	void CancelCallClick();
+	void FinishChattingClick();
 	void ShowIncomingCall(char *callerLogin);
-	void RefreshControls();
+	void RefreshControls(ClientStatus clientStatus, char *clientLogin = "");
 };

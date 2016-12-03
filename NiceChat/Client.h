@@ -22,6 +22,15 @@
 using namespace std;
 
 
+enum class ClientStatus {
+	Offline,
+	Online,
+	Calling,
+	Connected,
+	OnCall
+};
+
+
 class Client
 {
 private:
@@ -31,24 +40,31 @@ private:
 	sockaddr_in udp_sock_serv_addr;
 	sockaddr_in udp_sock_video_addr;
 	sockaddr_in interlocutor_sock_addr;
-	bool online;
 	HANDLE hServListenThread;
 	HANDLE hSendFrameThread;
 	HANDLE hRecvFrameThread;
 	char name[STR_BUFF_SIZE];
 	char last_name[STR_BUFF_SIZE];
 	char login[STR_BUFF_SIZE];
-	bool onCall = false;
+	ClientStatus status;
 	//Methods
 	Client();
 	~Client();
 	void Init();
 	void SendFrame(CamFrame frame);
 	CamFrame RecvFrame();
+	void StartVideoExchange();
+	void EndVideoExchange();
 	int TrySetTCPConnectionWithServ(SOCKET *sock);
+	//friend methods
 	friend DWORD WINAPI ServListenProc(LPVOID lParam);
 	friend DWORD WINAPI SendFrameThreadProc(LPVOID lpParam);
 	friend DWORD WINAPI RecvFrameThreadProc(LPVOID lpParam);
+	friend void IncomingCall(SOCKET udp_sock_serv);
+	friend void ClientLeaved(SOCKET udp_sock_serv);
+	friend void ClientJoined(SOCKET udp_sock_serv);
+	friend void CallEnd(SOCKET udp_sock_serv);
+	friend void StartChat(SOCKET udp_sock_serv);
 public:
 	//Fields
 	static sockaddr_in serv_tcp_addr;
@@ -71,31 +87,15 @@ public:
 		char *destinyClient,
 		char *err_message
 	);
-	void AcceptCall();
-	void CancelCall();
-	void EndCall();
-	void StartVideoExchange();
-	void EndVideoExchange();
+	void AcceptIncomingCall();
+	void CancelIncomingCall();
+	void CancelOutgoingCall();
+	void StartChatting();
+	void EndChatting();
 	void LeaveChat();
-	bool IsOnline()
+	ClientStatus GetStatus()
 	{
-		return online;
-	}
-	bool IsOnCall()
-	{
-		return onCall;
-	}
-	void SetOnCall()
-	{
-		onCall = true;
-	}
-	void SetFree()
-	{
-		onCall = false;
-	}
-	void SetInterlocutorAddr(sockaddr_in addr)
-	{
-		interlocutor_sock_addr = addr;
+		return status;
 	}
 	char* Name()
 	{

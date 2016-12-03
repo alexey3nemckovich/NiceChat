@@ -46,5 +46,5 @@ public:
 	virtual void Hide();
 	static void MoveToCenter(HWND hWnd);
 	static void SetText(HWND, char*);
-	static void DrawTextInCenter(HWND hWnd);
+	static void FillWithBrush(HWND hWnd, HBRUSH hBrush);
 };

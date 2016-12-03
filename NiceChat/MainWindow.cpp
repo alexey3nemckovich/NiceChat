@@ -38,7 +38,7 @@ void MainWindow::Init()
 	//init conrtols
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
 	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, webCamBoxLeft, 0, 40, 100, cmbBoxStyle);
-	DWORD camBoxStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD | SS_BITMAP;
+	DWORD camBoxStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD /*| SS_BITMAP*/ | SS_CENTERIMAGE;
 	hWebCamBox = windowConstructor->CreateControl(
 		L"STATIC",
 		L"",
@@ -81,15 +81,19 @@ void MainWindow::Init()
 
 void MainWindow::Show()
 {
-	RefreshControls();
+	RefreshControls(client->GetStatus());
+	if (client->GetStatus() == ClientStatus::Online)
+	{
+		RefreshOnlineClientsList();
+	}
 	//RefreshCameraComponents();
 	if (camera != NULL)
 	{
 		//camera->Open();
 	}
 	Window::Show();
-	ResumeThread(hRenderWebcamThread);
-	webCamRenderThreadSuspended = false;
+	//ResumeThread(hRenderWebcamThread);
+	//webCamRenderThreadSuspended = false;
 }
 
 
@@ -105,32 +109,52 @@ void MainWindow::Hide()
 }
 
 
-void MainWindow::RefreshControls()
+void MainWindow::RefreshControls(ClientStatus status, char *clientLogin)
 {
-	if (client->IsOnline())
+	switch (status)
 	{
-		char newWndTitle[1000];
-		sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
-		Window::SetText(hWnd, newWndTitle);
-		vector<ClientInfo> onlineClientsList = client->GetOnlineClientsList();
-		SetOnlineClientsList(onlineClientsList);
-		EnableWindow(hCallButton, TRUE);
-		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
-		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
-		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
-		if (client->IsOnCall())
+	case ClientStatus::Offline:
+	case ClientStatus::Online:
+	{
+		Window::FillWithBrush(hWebCamBox, (HBRUSH)GetStockObject(GRAY_BRUSH));
+		Window::SetText(hWebCamBox, "");
+		Window::SetText(hCallButton, "Call");
+		if (status == ClientStatus::Offline)
 		{
-			Window::SetText(hCallButton, "Cancel");
+			Window::SetText(hWnd, "NiceChat");
+			SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
+			EnableWindow(hCallButton, FALSE);
+			EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
+			EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
+			EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
 		}
+		else
+		{
+			char newWndTitle[1000];
+			sprintf(newWndTitle, "NiceChat - %s %s", client->Name(), client->LastName());
+			Window::SetText(hWnd, newWndTitle);
+			EnableWindow(hCallButton, TRUE);
+			EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
+			EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
+			EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
+		}
+		break;
 	}
-	else
+	case ClientStatus::Calling:
 	{
-		SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
-		//EnableWindow(hCallButton, FALSE);
-		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
-		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
-		Window::SetText(hWnd, "NiceChat");
+		Window::SetText(hCallButton, "Cancel");
+		char callingStr[STR_BUFF_SIZE];
+		sprintf(callingStr, "Calling to '%s'...", clientLogin);
+		Window::SetText(hWebCamBox, callingStr);
+		break;
+	}
+	case ClientStatus::OnCall:
+	{
+		Window::SetText(hCallButton, "Finish chatting");
+		break;
+	}
+	default:
+		break;
 	}
 }
 
@@ -153,8 +177,9 @@ void MainWindow::RefreshCameraComponents()
 }
 
 
-void MainWindow::SetOnlineClientsList(vector<ClientInfo> onlineClients)
+void MainWindow::RefreshOnlineClientsList()
 {
+	vector<ClientInfo> onlineClients = client->GetOnlineClientsList();
 	int countOnlineClients = onlineClients.size();
 	for (int i = 0; i < countOnlineClients; i++)
 	{
@@ -231,7 +256,7 @@ LRESULT CALLBACK MainWndProc(
 	LPARAM lParam
 )
 {
-	static MainWindow* mainWindow;
+	static MainWindow* mainWindow = NULL;
 	static Client* client = Client::GetInstance();
 	switch (message)
 	{
@@ -256,10 +281,10 @@ LRESULT CALLBACK MainWndProc(
 			break;
 		case ID_M_LEAVE_CHAT:
 			client->LeaveChat();
-			mainWindow->RefreshControls();
+			mainWindow->RefreshControls(client->GetStatus());
 			break;
 		case ID_M_EXIT:
-			if (client->IsOnline())
+			if (client->GetStatus() != ClientStatus::Offline)
 			{
 				client->LeaveChat();
 			}
@@ -277,6 +302,13 @@ LRESULT CALLBACK MainWndProc(
 	break;
 	case WM_PAINT:
 	{
+		////BAD BAD VERY BAD
+		mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::MAIN);
+		if (mainWindow->client->GetStatus() != ClientStatus::Offline)
+		{
+			Window::FillWithBrush(mainWindow->hWebCamBox, (HBRUSH)GetStockObject(WHITE_BRUSH));
+		}
+		////
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code that uses hdc here...
@@ -320,17 +352,28 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 		{
 		case BN_CLICKED:
 		{
-			static char selectedClient[STR_BUFF_SIZE];
-			if (GetListBoxSelectedClient(selectedClient) != LB_ERR)
+			switch (client->GetStatus())
 			{
-				if (!client->IsOnCall())
+			case ClientStatus::Online:
+			{
+				static char selectedClient[STR_BUFF_SIZE];
+				if (GetListBoxSelectedClient(selectedClient) != LB_ERR)
 				{
-					StartCallTo(selectedClient);
+					CallClick(selectedClient);
 				}
-				else
-				{
-					EndCall();
-				}
+				break;
+			}
+			case ClientStatus::Calling:
+			{
+				CancelCallClick();			
+				break;
+			}
+			case ClientStatus::OnCall:
+			{
+				FinishChattingClick();
+			}
+			default:
+				break;
 			}
 			break;
 		}
@@ -341,12 +384,59 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 }
 
 
-void MainWindow::StartCallTo(char *clientLogin)
+void MainWindow::CallClick(char *clientLogin)
 {
-	client->SetOnCall();
-	RefreshControls();
-
 	hCallThread = CreateThread(NULL, 0, &CallThreadProc, clientLogin, 0, 0);
+	RefreshControls(ClientStatus::Calling ,clientLogin);
+}
+
+
+void MainWindow::CancelCallClick()
+{
+	client->CancelOutgoingCall();
+	RefreshControls(client->GetStatus());
+}
+
+
+void MainWindow::FinishChattingClick()
+{
+	client->EndChatting();
+	RefreshControls(client->GetStatus());
+}
+
+
+DWORD WINAPI CallThreadProc(CONST LPVOID lParam)
+{
+	char* destClientLogin = (char*)lParam;
+	static MainWindow* mainWindow = (MainWindow*)WindowManager::GetInstance()->GetWindow(WINDOW_TYPE::MAIN);
+	static Client* client = Client::GetInstance();
+	char err_msg[STR_BUFF_SIZE];
+	if (client->TryConnectTo((char*)destClientLogin, err_msg))
+	{
+		client->StartChatting();
+		mainWindow->RefreshControls(client->GetStatus());
+	}
+	else
+	{
+		mainWindow->RefreshControls(client->GetStatus());
+		DialogManager::GetInstance()->ShowError(err_msg);
+	}
+	return 0;
+}
+
+
+DWORD WINAPI CamRenderThreadProc(CONST LPVOID lParam)
+{
+	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
+		->GetWindow(WINDOW_TYPE::MAIN);
+	static Camera* cam = Camera::GetInstance();
+	static CamFrame camFrame;
+	while (mainWnd->isAlive)
+	{
+		camFrame = cam->GetFrame();
+		mainWnd->RenderFrame(camFrame.data);
+	}
+	return 0;
 }
 
 
@@ -371,45 +461,4 @@ void MainWindow::RenderFrame(const uchar* frameData)
 	hCamBoxDC = GetDC(hWebCamBox);
 	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
 	ReleaseDC(hWebCamBox, hCamBoxDC);
-}
-
-
-void MainWindow::EndCall()
-{
-	//brush window
-	client->EndCall();
-	RefreshControls();
-}
-
-
-DWORD WINAPI CamRenderThreadProc(CONST LPVOID lParam)
-{
-	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
-		->GetWindow(WINDOW_TYPE::MAIN);
-	static Camera* cam = Camera::GetInstance();
-	static CamFrame camFrame;
-	while (mainWnd->isAlive)
-	{
-		camFrame = cam->GetFrame();
-		mainWnd->RenderFrame(camFrame.data);
-	}
-	return 0;
-}
-
-
-DWORD WINAPI CallThreadProc(CONST LPVOID lParam)
-{
-	char* destClientLogin = (char*)lParam;
-	static Client* client = Client::GetInstance();
-	char err_msg[STR_BUFF_SIZE];
-	if (client->TryConnectTo((char*)destClientLogin, err_msg))
-	{
-		client->SetOnCall();
-		client->StartVideoExchange();
-	}
-	else
-	{
-		DialogManager::GetInstance()->ShowError(err_msg);
-	}
-	return 0;
 }

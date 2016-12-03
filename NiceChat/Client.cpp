@@ -23,7 +23,7 @@ Client::Client()
 
 Client::~Client()
 {
-	if (online)
+	if (status != ClientStatus::Offline)
 	{
 		LeaveChat();
 	}
@@ -35,7 +35,7 @@ Client::~Client()
 
 void Client::Init()
 {
-	online = false;
+	status = ClientStatus::Offline;
 	hServListenThread = NULL;
 	hSendFrameThread = NULL;
 	hRecvFrameThread = NULL;
@@ -76,10 +76,10 @@ void Client::Init()
 		ExitProcess(0);
 	}
 	//Enable non blocking socket mode
-	/*if (ioctlsocket(udp_sock_video, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE)))
+	if (ioctlsocket(udp_sock_video, FIONBIO, &(I_NON_BLOCKING_SOCKETS_MODE)))
 	{
 		ExitProcess(0);
-	}*/
+	}
 	//Init server sock addr
 	serv_tcp_addr.sin_family = serv_udp_addr.sin_family = AF_INET;
 	serv_tcp_addr.sin_addr.s_addr = serv_udp_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
@@ -108,11 +108,17 @@ bool Client::TryLogin(
 		return false;
 	}
 	char operationNumber = 1;
+	//send login and pass
 	send(tcp_sock, &operationNumber, sizeof(operationNumber), 0);
 	Sleep(50);
 	send(tcp_sock, login, strlen(login) + 1, 0);
 	Sleep(50);
 	send(tcp_sock, pass, strlen(pass) + 1, 0);
+	Sleep(50);
+	//Send to server udp sockets addresses
+	send(tcp_sock, (char*)(&udp_sock_serv_addr.sin_port), sizeof(udp_sock_serv_addr.sin_port), 0);
+	Sleep(50);
+	send(tcp_sock, (char*)(&udp_sock_video_addr.sin_port), sizeof(udp_sock_video_addr.sin_port), 0);
 	Sleep(50);
 	//Check logination result
 	char buff[BUFF_LEN];
@@ -124,9 +130,9 @@ bool Client::TryLogin(
 		recv(tcp_sock, buff, BUFF_LEN, 0);
 		strcpy(last_name, buff);
 		strcpy(this->login, login);
-		online = true;
 		hServListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 		closesocket(tcp_sock);
+		status = ClientStatus::Online;
 		return true;
 	}
 	else
@@ -176,11 +182,11 @@ bool Client::TryRegistrate(
 	closesocket(tcp_sock);
 	if (recv_len == 0)
 	{
-		online = true;
 		hServListenThread = CreateThread(NULL, 0, &(ServListenProc), NULL, 0, 0);
 		strcpy(this->name, name);
 		strcpy(this->last_name, last_name);
 		strcpy(this->login, login);
+		status = ClientStatus::Online;
 		return true;
 	}
 	else
@@ -193,10 +199,12 @@ bool Client::TryRegistrate(
 
 bool Client::TryConnectTo(char *destinyClient, char *err_message)
 {
+	status = ClientStatus::Calling;
 	SOCKET tcp_sock;
 	if (TrySetTCPConnectionWithServ(&tcp_sock))
 	{
 		sprintf(err_message, "Failed to connect to server.");
+		status = ClientStatus::Online;
 		return false;
 	}
 	char operationNumber = 2;
@@ -209,19 +217,21 @@ bool Client::TryConnectTo(char *destinyClient, char *err_message)
 	recv(tcp_sock, buff, BUFF_LEN, 0);
 	if (strcmp(buff, CALL_ACCEPT_STR) == 0)
 	{
+		status = ClientStatus::Connected;
 		recv(tcp_sock, buff, BUFF_LEN, 0);
 		interlocutor_sock_addr = ((sockaddr_in*)buff)[0];
 		return true;
 	}
 	else
 	{
+		status = ClientStatus::Online;
 		strcpy(err_message, buff);
 		return false;
 	}
 }
 
 
-void Client::AcceptCall()
+void Client::AcceptIncomingCall()
 {
 	//notify server about call accept
 	sendto(udp_sock_serv,
@@ -231,13 +241,11 @@ void Client::AcceptCall()
 		(sockaddr*)(&Client::serv_udp_addr),
 		sizeof(Client::serv_udp_addr)
 	);
-	//refresh wnd controls
-	onCall = true;
-	mainWindow->RefreshControls();
+	status = ClientStatus::Connected;
 }
 
 
-void Client::CancelCall()
+void Client::CancelIncomingCall()
 {
 	//notify server about call cancel
 	sendto(udp_sock_serv,
@@ -247,11 +255,26 @@ void Client::CancelCall()
 		(sockaddr*)(&Client::serv_udp_addr),
 		sizeof(Client::serv_udp_addr)
 	);
+	status = ClientStatus::Online;
 }
 
 
-void Client::EndCall()
+void Client::CancelOutgoingCall()
 {
+
+}
+
+
+void Client::StartChatting()
+{
+	status = ClientStatus::OnCall;
+	StartVideoExchange();
+}
+
+
+void Client::EndChatting()
+{
+	status = ClientStatus::Online;
 	//notify server about call end
 	SOCKET tcp_sock;
 	TrySetTCPConnectionWithServ(&tcp_sock);
@@ -259,9 +282,6 @@ void Client::EndCall()
 	send(tcp_sock, &operationNumber, sizeof(operationNumber), 0);
 	Sleep(50);
 	send(tcp_sock, login, strlen(login) + 1, 0);
-	//refresh window controls
-	onCall = false;
-	mainWindow->RefreshControls();
 	//finish video exchange threads
 	EndVideoExchange();
 }
@@ -301,6 +321,7 @@ CamFrame Client::RecvFrame()
 
 void Client::LeaveChat()
 {
+	status = ClientStatus::Offline;
 	SOCKET tcp_sock;
 	if (TrySetTCPConnectionWithServ(&tcp_sock) == 0)
 	{
@@ -309,13 +330,11 @@ void Client::LeaveChat()
 		Sleep(50);
 		send(tcp_sock, login, strlen(login) + 1, 0);
 	}
-	if (onCall)
+	if (status == ClientStatus::OnCall)
 	{
-		onCall = false;
 		WaitForSingleObject(hSendFrameThread, INFINITE);
 		WaitForSingleObject(hRecvFrameThread, INFINITE);
 	}
-	online = false;
 	WaitForSingleObject(hServListenThread, INFINITE);
 }
 
@@ -380,7 +399,7 @@ DWORD WINAPI ServListenProc(LPVOID lParam)
 	Client* client = Client::GetInstance();
 	SOCKET udp_sock_serv = client->udp_sock_serv;
 	int recv_len;
-	while (client->online)
+	while (client->status != ClientStatus::Offline)
 	{
 		recv_len = recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
 		if (recv_len != -1)
@@ -444,17 +463,20 @@ void ClientJoined(SOCKET udp_sock_serv)
 
 void CallEnd(SOCKET udp_sock_serv)
 {
-	mainWindow->EndCall();
+	client->status = ClientStatus::Online;
+	mainWindow->RefreshControls(client->status);
 }
 
 
 void StartChat(SOCKET udp_sock_serv)
 {
+	client->status = ClientStatus::OnCall;
 	char buff[BUFF_LEN];
 	recvfrom(udp_sock_serv, buff, BUFF_LEN, 0, NULL, 0);
 	sockaddr_in interlocutor_sock_addr = ((sockaddr_in*)buff)[0];
-	client->SetInterlocutorAddr(interlocutor_sock_addr);
+	client->interlocutor_sock_addr = interlocutor_sock_addr;
 	client->StartVideoExchange();
+	mainWindow->RefreshControls(client->status);
 }
 
 
@@ -464,7 +486,7 @@ DWORD WINAPI SendFrameThreadProc(LPVOID lpParam)
 	static Client* client = Client::GetInstance();
 	static CamFrame frame;
 	//cam->Open();
-	while (client->IsOnCall())
+	while (client->status == ClientStatus::OnCall)
 	{
 		frame = cam->GetFrame();
 		frame.data = (uchar*)malloc(100);
@@ -482,14 +504,15 @@ DWORD WINAPI RecvFrameThreadProc(LPVOID lpParam)
 		->GetWindow(WINDOW_TYPE::MAIN);
 	static Client* client = Client::GetInstance();
 	static CamFrame frame;
-	while (client->IsOnCall())
+	while (client->status == ClientStatus::OnCall)
 	{
 		frame = client->RecvFrame();
 		//mainWnd->RenderFrame(frame.data);
 		if (frame.size != -1)
 		{
-			LPCWSTR lpStr = PCharToLPCWSTR((char*)frame.data);
+			/*LPCWSTR lpStr = PCharToLPCWSTR((char*)frame.data);
 			MessageBox(NULL, lpStr, L"Mess", 0);
+			free((void*)lpStr);*/
 			Sleep(1000);
 		}
 	}

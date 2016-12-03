@@ -115,7 +115,11 @@ void Window::SetText(HWND hWnd, char *newText)
 }
 
 
-void Window::DrawTextInCenter(HWND hWnd)
+void Window::FillWithBrush(HWND hWnd, HBRUSH hBrush)
 {
-
+	HDC hDC = GetDC(hWnd);
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	FillRect(hDC, &rect, hBrush);
+	ReleaseDC(hWnd, hDC);
 }

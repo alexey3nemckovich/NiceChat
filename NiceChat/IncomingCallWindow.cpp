@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "IncomingCallWindow.h"
+#include "MainWindow.h"
 
 
 IncomingCallWindow::IncomingCallWindow()
@@ -84,15 +85,17 @@ LRESULT CALLBACK IncomingCallWndProc(
 
 void IncomingCallWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 {
+	static MainWindow* mainWindow = (MainWindow*)windowManager->GetWindow(WINDOW_TYPE::MAIN);
 	HWND hControl = (HWND)lParam;
 	if (hControl == hAcceptBtn)
 	{
-		client->AcceptCall();
+		client->AcceptIncomingCall();
 	}
 	if (hControl == hCancelBtn)
 	{
-		client->CancelCall();
+		client->CancelIncomingCall();
 	}
+	mainWindow->RefreshControls(client->GetStatus());
 	Hide();
 }
 
