@@ -10,17 +10,19 @@ int WindowManager::nCmdShow;
 
 WindowManager::WindowManager()
 {
-	regWindow = NULL;
-	loginWindow = NULL;
-	mainWindow = NULL;
+	windows[WINDOW_TYPE::INCOMING_CALL] = new IncomingCallWindow();
+	windows[WINDOW_TYPE::LOGIN] = new LoginWindow();
+	windows[WINDOW_TYPE::MAIN] = new MainWindow();
+	windows[WINDOW_TYPE::REGISTRATION] = new RegistrationWindow();
 }
 
 
 WindowManager::~WindowManager()
 {
-	delete(regWindow);
-	delete(loginWindow);
-	delete(mainWindow);
+	for each(auto pair in windows)
+	{
+		delete(pair.second);
+	}
 }
 
 
@@ -31,9 +33,15 @@ WindowManager* WindowManager::GetInstance()
 }
 
 
+Window *WindowManager::GetWindow(WINDOW_TYPE wndType)
+{
+	return windows[wndType];
+}
+
+
 void WindowManager::ShowWindow(WINDOW_TYPE wndType, bool hide_active)
 {
-	Window* targetWindow = GetWindow(wndType);
+	Window* targetWindow = windows[wndType];
 	if (hide_active)
 	{
 		if (activeWindow != NULL)
@@ -46,28 +54,18 @@ void WindowManager::ShowWindow(WINDOW_TYPE wndType, bool hide_active)
 }
 
 
-Window* WindowManager::GetWindow(WINDOW_TYPE wndType)
+Window* WindowManager::CreateWnd(WINDOW_TYPE wndType)
 {
 	switch (wndType)
 	{
 	case WINDOW_TYPE::MAIN:
-		if (mainWindow == NULL)
-		{
-			mainWindow = new MainWindow();
-		}
-		return mainWindow;
+		return new MainWindow();
 	case WINDOW_TYPE::LOGIN:
-		if (loginWindow == NULL)
-		{
-			loginWindow = new LoginWindow();
-		}
-		return loginWindow;
+		return new LoginWindow();
 	case WINDOW_TYPE::REGISTRATION:
-		if (regWindow == NULL)
-		{
-			regWindow = new RegistrationWindow();
-		}
-		return regWindow;
+		return new RegistrationWindow();
+	case WINDOW_TYPE::INCOMING_CALL:
+		return new IncomingCallWindow();
 	default:
 		return NULL;
 	}

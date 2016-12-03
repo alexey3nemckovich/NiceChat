@@ -6,7 +6,7 @@ bool bindSocketWithRandomAddr(SOCKET socket, sockaddr_in* binded_addr)
 {
 	ZeroMemory(binded_addr, sizeof(*binded_addr));
 	(*binded_addr).sin_family = AF_INET;
-	(*binded_addr).sin_addr.s_addr = inet_addr("127.0.0.1");
+	(*binded_addr).sin_addr.s_addr = INADDR_ANY;
 	bool sock_binded = false;
 	while (!sock_binded)
 	{

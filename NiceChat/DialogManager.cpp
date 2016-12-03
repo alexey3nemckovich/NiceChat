@@ -5,13 +5,16 @@
 
 DialogManager::DialogManager()
 {
-	aboutDialog = NULL;
+	for each(auto pair in dialogs)
+	{
+		pair.second = NULL;
+	}
 }
 
 
 DialogManager::~DialogManager()
 {
-	delete(aboutDialog);
+
 }
 
 
@@ -24,22 +27,27 @@ DialogManager* DialogManager::GetInstance()
 
 void DialogManager::ShowDialog(DIALOG_TYPE dlgType)
 {
-	HWND dlg = GetDialog(dlgType);
-	Window::MoveToCenter(dlg);
-	ShowWindow(dlg, WindowManager::GetNCmdShow());
+	if (dialogs[dlgType] == NULL)
+	{
+		dialogs[dlgType] = CreateDialogWindow(dlgType);
+	}
+	HWND hDlg = dialogs[dlgType];
+	Window::MoveToCenter(hDlg);
+	ShowWindow(hDlg, WindowManager::GetNCmdShow());
 }
 
 
-HWND DialogManager::GetDialog(DIALOG_TYPE dlgType)
+HWND DialogManager::CreateDialogWindow(DIALOG_TYPE dlgType)
 {
 	switch (dlgType)
 	{
 	case DIALOG_TYPE::ABOUT:
-		if (aboutDialog == NULL)
-		{
-			aboutDialog = CreateDialog(WindowManager::GetHInstance(), MAKEINTRESOURCE(ABOUT_WINDOW), NULL, AboutDialogProc);
-		}
-		return aboutDialog;
+		return CreateDialog(
+			WindowManager::GetHInstance(),
+			MAKEINTRESOURCE(ABOUT_WINDOW),
+			NULL,
+			AboutDialogProc
+		);
 	default:
 		return NULL;
 	}

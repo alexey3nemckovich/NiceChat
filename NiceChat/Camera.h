@@ -1,15 +1,18 @@
 #pragma once
 
 
-#define CAM_FRAME_WIDTH 640
-#define CAM_FRAME_HEIGHT 480
-
-
 #include "CaptureDevice.h"
 #include "WindowManager.h"
 #include <opencv2\opencv.hpp>
 #include <mutex>
 #include <thread>
+
+
+struct CamFrame
+{
+	const uchar *data;
+	int size;
+};
 
 
 class Camera
@@ -21,7 +24,7 @@ private:
 	int frameHeight;
 	void Init();
 	std::mutex camLock;
-	cv::Mat lastFrame;
+	cv::Mat lastMat;
 	cv::VideoCapture capture;
 	bool isOpened;
 	Camera();
@@ -34,7 +37,7 @@ public:
 		return isOpened;
 	}
 	bool IsAvailable();
-	cv::Mat GetFrame();
+	CamFrame GetFrame();
 	int GetCapDeviceNumber()
 	{
 		return capIndex;

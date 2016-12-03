@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DialogProcedures.h"
 
+
 INT_PTR CALLBACK AboutDialogProc(
 	_In_ HWND   hwndDlg,
 	_In_ UINT   uMsg,

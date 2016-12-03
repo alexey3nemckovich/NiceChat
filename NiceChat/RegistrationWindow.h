@@ -6,6 +6,9 @@ class RegistrationWindow :
 	public Window
 {
 private:
+	RegistrationWindow();
+	~RegistrationWindow();
+	friend class WindowManager;
 	//inner controls
 	HWND hNameText;
 	HWND hNameEdit;
@@ -37,7 +40,4 @@ private:
 		WPARAM,
 		LPARAM
 	);
-public:
-	RegistrationWindow();
-	~RegistrationWindow();
 };

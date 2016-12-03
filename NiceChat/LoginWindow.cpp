@@ -3,7 +3,7 @@
 
 
 LoginWindow::LoginWindow() 
-	: Window(LoginProc, _T("LogWindowClass"), _T("Login"), 600, 400)
+	: Window(LoginProc, _T("LogWindowClass"), _T("Login"), 600, 400, 0)
 {
 	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(ID_LOGIN_MENU)));
 	Init();
@@ -20,12 +20,12 @@ void LoginWindow::Init()
 	DWORD staticStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD;
 	DWORD editStyle = ES_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
 	DWORD editPassStyle = ES_PASSWORD | editStyle;
-	DWORD btnStyle;
+	DWORD btnStyle = 0;
 	hLoginText = windowConstructor->CreateControl(L"STATIC", L"Login", hWnd, 100, 100, w, h, staticStyle);
 	hLoginEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 350, 100, w, h, editStyle);
 	hPassText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 100, 200, w, h, staticStyle);
 	hPassEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 350, 200, w, h, editPassStyle);
-	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - loginBtnWidth / 2, 275, loginBtnWidth, loginBtnHeight);
+	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - loginBtnWidth / 2, 275, loginBtnWidth, loginBtnHeight, btnStyle);
 	//INIT FIELDS
 	login = (char*)malloc(strBuffSize);
 	pass = (char*)malloc(strBuffSize);

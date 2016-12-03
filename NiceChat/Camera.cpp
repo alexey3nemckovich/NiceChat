@@ -60,11 +60,14 @@ bool Camera::IsAvailable()
 }
 
 
-cv::Mat Camera::GetFrame()
+CamFrame Camera::GetFrame()
 {
+	static CamFrame frame;
 	std::lock_guard<std::mutex> lock(camLock);
-	capture >> lastFrame;
-	return lastFrame;
+	capture >> lastMat;
+	frame.data = lastMat.datastart;
+	frame.size = lastMat.dataend - lastMat.datastart;
+	return frame;
 }
 
 

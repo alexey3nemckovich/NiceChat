@@ -8,6 +8,11 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+
+//camera defines
+#define CAM_FRAME_WIDTH 640
+#define CAM_FRAME_HEIGHT 480
+
 // Windows Header Files:
 #include <windows.h>
 

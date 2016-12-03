@@ -6,6 +6,9 @@ class LoginWindow :
 	public Window
 {
 private:
+	LoginWindow();
+	~LoginWindow();
+	friend class WindowManager;
 	//inner controls
 	HWND hPassText;
 	HWND hPassEdit;
@@ -27,7 +30,4 @@ private:
 		WPARAM,
 		LPARAM
 	);
-public:
-	LoginWindow();
-	~LoginWindow();
 };

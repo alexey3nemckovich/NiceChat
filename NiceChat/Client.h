@@ -2,10 +2,13 @@
 
 
 #define BUFF_LEN 1000
+#define FRAME_BUFF_LEN 65000
+#define SERVER_IP "192.168.100.3"
 #define SERVER_TCP_PORT 666
 #define SERVER_UDP_PORT 777
 #define STR_BUFF_SIZE 50
 #define CALL_ACCEPT_STR "accept"
+#define CALL_CANCEL_STR "cancel"
 
 
 #include <mutex>
@@ -14,6 +17,7 @@
 #include <opencv2\opencv.hpp>
 #include "ClientInfo.h"
 #include "Network.h"
+#include "Camera.h"
 #include "WindowManager.h"
 using namespace std;
 
@@ -39,12 +43,17 @@ private:
 	Client();
 	~Client();
 	void Init();
+	void SendFrame(CamFrame frame);
+	CamFrame RecvFrame();
 	int TrySetTCPConnectionWithServ(SOCKET *sock);
 	friend DWORD WINAPI ServListenProc(LPVOID lParam);
 	friend DWORD WINAPI SendFrameThreadProc(LPVOID lpParam);
 	friend DWORD WINAPI RecvFrameThreadProc(LPVOID lpParam);
-	friend void IncomingCall(SOCKET udp_sock_serv);
 public:
+	//Fields
+	static sockaddr_in serv_tcp_addr;
+	static sockaddr_in serv_udp_addr;
+	//Methods
 	static Client* GetInstance();
 	bool TryLogin(
 		const char *const login,
@@ -59,13 +68,14 @@ public:
 		char *err_message
 	);
 	bool TryConnectTo(
-		const char const *destinyClient,
+		char *destinyClient,
 		char *err_message
 	);
+	void AcceptCall();
+	void CancelCall();
+	void EndCall();
 	void StartVideoExchange();
 	void EndVideoExchange();
-	void SendFrame(cv::Mat frame);
-	cv::Mat RecvFrame();
 	void LeaveChat();
 	bool IsOnline()
 	{
@@ -83,6 +93,10 @@ public:
 	{
 		onCall = false;
 	}
+	void SetInterlocutorAddr(sockaddr_in addr)
+	{
+		interlocutor_sock_addr = addr;
+	}
 	char* Name()
 	{
 		return name;
@@ -96,6 +110,4 @@ public:
 		return login;
 	}
 	vector<ClientInfo> GetOnlineClientsList();
-	static sockaddr_in serv_tcp_addr;
-	static sockaddr_in serv_udp_addr;
 };

@@ -1,13 +1,15 @@
 #pragma once
+#include <map>
 
 
-enum class WINDOW_TYPE{MAIN, REGISTRATION, LOGIN, ABOUT};
+enum class WINDOW_TYPE{MAIN, REGISTRATION, LOGIN, ABOUT, INCOMING_CALL};
 
 
 class Window;
 class MainWindow;
 class LoginWindow;
 class RegistrationWindow;
+class IncomingCallWindow;
 
 
 class WindowManager
@@ -15,10 +17,9 @@ class WindowManager
 private:
 	static HINSTANCE hInstance;
 	static int nCmdShow;
-	MainWindow *mainWindow;
-	LoginWindow *loginWindow;
-	RegistrationWindow *regWindow;
+	std::map<WINDOW_TYPE, Window*> windows;
 	Window *activeWindow;
+	Window *CreateWnd(WINDOW_TYPE wndType);
 public:
 	WindowManager();
 	~WindowManager();
@@ -40,6 +41,6 @@ public:
 	{
 		return activeWindow;
 	}
-	Window *GetWindow(WINDOW_TYPE wndType);
+	Window *GetWindow(WINDOW_TYPE);
 	void ShowWindow(WINDOW_TYPE wndType, bool hide_active = true);
 };

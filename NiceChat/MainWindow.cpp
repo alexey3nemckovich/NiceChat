@@ -3,7 +3,7 @@
 
 
 MainWindow::MainWindow() 
-	: Window(MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 900, 600)
+	: Window(MainWndProc, _T("MainWindowClass"), _T("NiceChat"), 900, 600, 0)
 {
 	hMenu = LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(IDC_NICECHAT));
 	SetMenu(hWnd, hMenu);
@@ -31,8 +31,10 @@ void MainWindow::Init()
 {
 	isAlive = true;
 	imageProcesser = ImageProcesser::GetInstance();
-	//hRenderWebcamThread = CreateThread(NULL, 0, &(CamRenderingProc), NULL, CREATE_SUSPENDED, 0);
-	//webCamThreadSuspended = true;
+	hCallThread = NULL;
+	hRenderWebcamThread = NULL;
+	//hRenderWebcamThread = CreateThread(NULL, 0, &(CamRenderThreadProc), NULL, CREATE_SUSPENDED, 0);
+	//webCamRenderThreadSuspended = true;
 	//init conrtols
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
 	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, webCamBoxLeft, 0, 40, 100, cmbBoxStyle);
@@ -62,7 +64,7 @@ void MainWindow::Init()
 		clientsListBoxHeight,
 		clientsListBoxStyle
 	);
-	DWORD callButtonStyle;
+	DWORD callButtonStyle = 0;
 	hCallButton = windowConstructor->CreateControl(
 		L"BUTTON",
 		L"Call",
@@ -70,10 +72,9 @@ void MainWindow::Init()
 		clientsListBoxLeft,
 		webCamBoxTop + clientsListBoxHeight + 10,
 		clientsListBoxWidth,
-		callBtnHeight
+		callBtnHeight,
+		callButtonStyle
 	);
-	hSendFrameThread = NULL;
-	hRecvFrameThread = NULL;
 	camera = Camera::GetInstance();
 }
 
@@ -81,14 +82,14 @@ void MainWindow::Init()
 void MainWindow::Show()
 {
 	RefreshControls();
-	RefreshCameraComponents();
+	//RefreshCameraComponents();
 	if (camera != NULL)
 	{
-		camera->Open();
+		//camera->Open();
 	}
 	Window::Show();
-	//ResumeThread(hRenderWebcamThread);
-	//webCamThreadSuspended = false;
+	ResumeThread(hRenderWebcamThread);
+	webCamRenderThreadSuspended = false;
 }
 
 
@@ -117,11 +118,15 @@ void MainWindow::RefreshControls()
 		EnableMenuItem(hMenu, ID_M_LOGIN, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_DISABLED);
 		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_ENABLED);
+		if (client->IsOnCall())
+		{
+			Window::SetText(hCallButton, "Cancel");
+		}
 	}
 	else
 	{
 		SendMessage(hOnlineClientsListBox, LB_RESETCONTENT, 0, 0);
-		EnableWindow(hCallButton, FALSE);
+		//EnableWindow(hCallButton, FALSE);
 		EnableMenuItem(hMenu, ID_M_LOGIN, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_M_REGISTRATE, MF_ENABLED);
 		EnableMenuItem(hMenu, ID_M_LEAVE_CHAT, MF_DISABLED);
@@ -163,6 +168,14 @@ void MainWindow::SetOnlineClientsList(vector<ClientInfo> onlineClients)
 }
 
 
+void MainWindow::ShowIncomingCall(char *callerLogin)
+{
+	IncomingCallWindow* callWindow = (IncomingCallWindow*)windowManager->GetWindow(WINDOW_TYPE::INCOMING_CALL);
+	callWindow->SetCallerLogin(callerLogin);
+	callWindow->Show();
+}
+
+
 void MainWindow::AddCapDeviceIndexToComboBox(int capIndex)
 {
 	TCHAR capIndexStr[10];
@@ -196,7 +209,7 @@ void MainWindow::RemoveClientFromListBox(char* clientLogin)
 }
 
 
-int MainWindow::GetListBoxSelectedClient(char *selectedClient)
+int MainWindow::GetListBoxSelectedClient(char* selectedClient)
 {
 	int itemIndex = (int)SendMessage(hOnlineClientsListBox, LB_GETCURSEL, (WPARAM)0, (LPARAM)0);
 	if (itemIndex == LB_ERR)
@@ -307,17 +320,16 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 		{
 		case BN_CLICKED:
 		{
-			char selectedClient[STR_BUFF_SIZE];
+			static char selectedClient[STR_BUFF_SIZE];
 			if (GetListBoxSelectedClient(selectedClient) != LB_ERR)
 			{
-				char err_msg[STR_BUFF_SIZE];
-				if (client->TryConnectTo(selectedClient, err_msg))
+				if (!client->IsOnCall())
 				{
-					StartVideoExchange();
+					StartCallTo(selectedClient);
 				}
 				else
 				{
-					dialogManager->ShowError(err_msg);
+					EndCall();
 				}
 			}
 			break;
@@ -329,38 +341,16 @@ void MainWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 }
 
 
-void MainWindow::StartVideoExchange()
+void MainWindow::StartCallTo(char *clientLogin)
 {
-	hSendFrameThread = CreateThread(NULL, 0, &SendFrameThreadProc, NULL, 0, 0);
-	hRecvFrameThread = CreateThread(NULL, 0, &RecvFrameThreadProc, NULL, 0, 0);
-	Window::SetText(hCallButton, "Close");
+	client->SetOnCall();
+	RefreshControls();
+
+	hCallThread = CreateThread(NULL, 0, &CallThreadProc, clientLogin, 0, 0);
 }
 
 
-void MainWindow::EndVideoExchange()
-{
-	WaitForSingleObject(hSendFrameThread, INFINITE);
-	WaitForSingleObject(hRecvFrameThread, INFINITE);
-	Window::SetText(hCallButton, "Call");
-}
-
-
-DWORD WINAPI CamRenderThreadProc(CONST LPVOID lParam)
-{
-	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
-		->GetWindow(WINDOW_TYPE::MAIN);
-	static Camera* cam = Camera::GetInstance();
-	static cv::Mat camFrame;
-	while (mainWnd->isAlive)
-	{
-		camFrame = cam->GetFrame();
-		mainWnd->DrawCamFrame(camFrame);
-	}
-	return 0;
-}
-
-
-void MainWindow::DrawCamFrame(cv::Mat frame)
+void MainWindow::RenderMatFrame(cv::Mat frame)
 {
 	static HDC hBuffDC = CreateCompatibleDC(NULL);
 	static HDC hCamBoxDC;
@@ -369,4 +359,57 @@ void MainWindow::DrawCamFrame(cv::Mat frame)
 	hCamBoxDC = GetDC(hWebCamBox);
 	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
 	ReleaseDC(hWebCamBox, hCamBoxDC);
+}
+
+
+void MainWindow::RenderFrame(const uchar* frameData)
+{
+	static HDC hBuffDC = CreateCompatibleDC(NULL);
+	static HDC hCamBoxDC;
+	HBITMAP hBmpFrame = imageProcesser->GetBitmapFromData(frameData);
+	SelectObject(hBuffDC, hBmpFrame);
+	hCamBoxDC = GetDC(hWebCamBox);
+	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
+	ReleaseDC(hWebCamBox, hCamBoxDC);
+}
+
+
+void MainWindow::EndCall()
+{
+	//brush window
+	client->EndCall();
+	RefreshControls();
+}
+
+
+DWORD WINAPI CamRenderThreadProc(CONST LPVOID lParam)
+{
+	static MainWindow* mainWnd = (MainWindow*)WindowManager::GetInstance()
+		->GetWindow(WINDOW_TYPE::MAIN);
+	static Camera* cam = Camera::GetInstance();
+	static CamFrame camFrame;
+	while (mainWnd->isAlive)
+	{
+		camFrame = cam->GetFrame();
+		mainWnd->RenderFrame(camFrame.data);
+	}
+	return 0;
+}
+
+
+DWORD WINAPI CallThreadProc(CONST LPVOID lParam)
+{
+	char* destClientLogin = (char*)lParam;
+	static Client* client = Client::GetInstance();
+	char err_msg[STR_BUFF_SIZE];
+	if (client->TryConnectTo((char*)destClientLogin, err_msg))
+	{
+		client->SetOnCall();
+		client->StartVideoExchange();
+	}
+	else
+	{
+		DialogManager::GetInstance()->ShowError(err_msg);
+	}
+	return 0;
 }

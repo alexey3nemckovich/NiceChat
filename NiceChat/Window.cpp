@@ -9,13 +9,17 @@ WindowConstructor *Window::windowConstructor = WindowConstructor::GetInstance();
 POINT Window::screenCenter = POINT{ 0, 0 };
 
 
-Window::Window(WINDOW_PROC wnd_proc, LPCTSTR lpClassName, LPCTSTR lpWindowName, int width, int height)
+Window::Window(WINDOW_PROC wnd_proc, LPCTSTR lpClassName, LPCTSTR lpWindowName, int width, int height, DWORD style)
 {
+	if (!style)
+	{
+		style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+	}
 	this->lpClassName = lpClassName;
 	this->lpWindowName = lpWindowName;
 	this->wndProc = wnd_proc;
 	RegisterWindowClass();
-	InitInstance(width, height);
+	InitInstance(width, height, style);
 }
 
 
@@ -36,14 +40,14 @@ ATOM Window::RegisterWindowClass()
 }
 
 
-void Window::InitInstance(int width, int height)
+void Window::InitInstance(int width, int height, DWORD style)
 {
 	hWnd = CreateWindow
 	(
 		this->lpClassName,
 		this->lpWindowName,
 		//THICKFRAME makes window resizable
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+		style,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		width,
@@ -108,4 +112,10 @@ void Window::SetText(HWND hWnd, char *newText)
 	lpNewText = PCharToLPCWSTR(newText);
 	SetWindowText(hWnd, lpNewText);
 	free((wchar_t*)lpNewText);
+}
+
+
+void Window::DrawTextInCenter(HWND hWnd)
+{
+
 }

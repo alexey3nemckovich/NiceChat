@@ -6,7 +6,7 @@ LPCWSTR PCharToLPCWSTR(char* str);
 
 
 RegistrationWindow::RegistrationWindow() 
-	: Window(RegistrationProc, _T("RegWindowClass"), _T("Registration"), 400, 600)
+	: Window(RegistrationProc, _T("RegWindowClass"), _T("Registration"), 400, 600, 0)
 {
 	SetMenu(hWnd, LoadMenu(WindowManager::GetHInstance(), MAKEINTRESOURCE(ID_REGISTRATION_MENU)));
 	Init();
@@ -24,7 +24,7 @@ void RegistrationWindow::Init()
 	DWORD staticStyle = SS_CENTER | WS_BORDER | WS_VISIBLE | WS_CHILD;
 	DWORD editStyle = ES_CENTER | WS_BORDER | WS_TABSTOP | WS_VISIBLE | WS_CHILD;
 	DWORD editPassStyle = ES_PASSWORD | editStyle;
-	DWORD btnStyle;
+	DWORD btnStyle = 0;
 	//name
 	hNameText = windowConstructor->CreateControl(L"STATIC", L"Name", hWnd, 50, 100, w, h, staticStyle);
 	hNameEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 100, w, h, editStyle);
@@ -41,7 +41,7 @@ void RegistrationWindow::Init()
 	hPassConfirmText = windowConstructor->CreateControl(L"STATIC", L"Password", hWnd, 50, 400, w, h, staticStyle);
 	hPassConfirmEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 225, 400, w, h, editPassStyle);
 	//reg btn
-	hRegBtn = windowConstructor->CreateControl(L"BUTTON", L"Registrate", hWnd, wndCenter.x - loginBtnWidth / 2, 475, loginBtnWidth, loginBtnHeight);
+	hRegBtn = windowConstructor->CreateControl(L"BUTTON", L"Registrate", hWnd, wndCenter.x - loginBtnWidth / 2, 475, loginBtnWidth, loginBtnHeight, btnStyle);
 }
 
 

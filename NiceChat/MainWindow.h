@@ -1,5 +1,6 @@
 #pragma once
 #include "Window.h"
+#include "IncomingCallWindow.h"
 #include "Camera.h"
 #include "ImageProcesser.h"
 
@@ -8,6 +9,9 @@ class MainWindow :
 	public Window
 {
 private:
+	MainWindow();
+	~MainWindow();
+	friend class WindowManager;
 	//inner controls
 	HWND hListCapsComboBox;
 	HWND hWebCamBox;
@@ -20,10 +24,9 @@ private:
 	void InnerControlsProc(LPARAM, WORD);
 	void AddCapDeviceIndexToComboBox(int);
 	void AddCapDeviceToComboBox(CaptureDevice);
-	void RefreshControls();
 	void RefreshCameraComponents();
-	int GetListBoxSelectedClient(char *selectedClient);
-	//friend procs
+	int GetListBoxSelectedClient(char* selectedClient);
+	//wnd proc
 	friend LRESULT CALLBACK MainWndProc(
 		HWND,
 		UINT,
@@ -41,10 +44,13 @@ private:
 	const ImageProcesser* imageProcesser;
 	vector<CaptureDevice> listCaps;
 	HANDLE hRenderWebcamThread;
-	HANDLE hSendFrameThread;
-	HANDLE hRecvFrameThread;
+	HANDLE hCallThread;
 	bool webCamRenderThreadSuspended;
+	//Thread proc
 	friend DWORD WINAPI CamRenderThreadProc(
+		CONST LPVOID lParam
+	);
+	friend DWORD WINAPI CallThreadProc(
 		CONST LPVOID lParam
 	);
 public:
@@ -52,7 +58,10 @@ public:
 	void Hide();
 	void AddClientToListBox(char* clientLogin);
 	void RemoveClientFromListBox(char* clientLogin);
-	void DrawCamFrame(cv::Mat frame);
-	MainWindow();
-	~MainWindow();
+	void RenderMatFrame(cv::Mat frame);
+	void RenderFrame(const uchar* frameData);
+	void StartCallTo(char *clientLogin);
+	void EndCall();
+	void ShowIncomingCall(char *callerLogin);
+	void RefreshControls();
 };

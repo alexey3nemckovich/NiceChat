@@ -4,7 +4,15 @@
 
 ImageProcesser::ImageProcesser()
 {
-
+	ZeroMemory(&initBmpInfoHeader, sizeof(BITMAPINFOHEADER));
+	initBmpInfoHeader.biSize = sizeof(BITMAPINFOHEADER);
+	initBmpInfoHeader.biPlanes = 1;
+	int bitsPerColor = 8;
+	initBmpInfoHeader.biBitCount = 3 * bitsPerColor;
+	initBmpInfoHeader.biWidth = CAM_FRAME_WIDTH;
+	initBmpInfoHeader.biHeight = -CAM_FRAME_HEIGHT;
+	ZeroMemory(&initBmpInfo, sizeof(BITMAPINFO));
+	initBmpInfo.bmiHeader = initBmpInfoHeader;
 }
 
 
@@ -65,5 +73,13 @@ HBITMAP ImageProcesser::ConvertCVMatToHBITMAP(cv::Mat mat) const
 	bmpInfo.bmiHeader = bmpInfoHeader;
 	HDC hBuffDC = GetDC(NULL);
 	HBITMAP hBmp = CreateDIBitmap(hBuffDC, &bmpInfoHeader, CBM_INIT, mat.datastart, &bmpInfo, DIB_RGB_COLORS);
+	return hBmp;
+}
+
+
+HBITMAP ImageProcesser::GetBitmapFromData(const uchar *data) const
+{
+	HDC hBuffDC = GetDC(NULL);
+	HBITMAP hBmp = CreateDIBitmap(hBuffDC, &initBmpInfoHeader, CBM_INIT, data, &initBmpInfo, DIB_RGB_COLORS);
 	return hBmp;
 }
