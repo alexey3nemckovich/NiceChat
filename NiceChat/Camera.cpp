@@ -70,10 +70,11 @@ bool Camera::IsAvailable()
 
 CamFrame Camera::GetFrame()
 {
-	static CamFrame frame{imgGray, imgSize};
+	static CamFrame frame{cv::Mat(), imgSize};
 	std::lock_guard<std::mutex> lock(camLock);
 	capture >> img;
 	cv::cvtColor(img, imgGray, CV_BGR2GRAY);
+	frame.img = imgGray;
 	return frame;
 }
 

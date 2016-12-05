@@ -26,6 +26,7 @@ enum class ClientStatus {
 	Offline,
 	Online,
 	Calling,
+	Waiting_for_connect,
 	Connected,
 	OnCall
 };
@@ -35,10 +36,12 @@ class Client
 {
 private:
 	//Fields
+	bool callInitiator;
+	SOCKET callerSocket;
 	SOCKET udp_sock_serv;
-	SOCKET udp_sock_video;
+	SOCKET tcp_sock_video;
 	sockaddr_in udp_sock_serv_addr;
-	sockaddr_in udp_sock_video_addr;
+	sockaddr_in tcp_sock_video_addr;
 	sockaddr_in interlocutor_sock_addr;
 	HANDLE hServListenThread;
 	HANDLE hSendFrameThread;
