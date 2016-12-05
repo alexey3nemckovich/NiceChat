@@ -58,8 +58,7 @@ public:
 	void Hide();
 	void AddClientToListBox(char* clientLogin);
 	void RemoveClientFromListBox(char* clientLogin);
-	void RenderMatFrame(cv::Mat frame);
-	void RenderFrame(const uchar* frameData);
+	void RenderFrame(CamFrame camFrame);
 	void CallClick(char *clientLogin);
 	void CancelCallClick();
 	void FinishChattingClick();

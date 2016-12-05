@@ -10,7 +10,7 @@
 
 struct CamFrame
 {
-	const uchar *data;
+	cv::Mat img;
 	int size;
 };
 
@@ -19,14 +19,13 @@ class Camera
 {
 private:
 	int capIndex;
-	int camsCount;
-	int frameWidth;
-	int frameHeight;
-	void Init();
 	std::mutex camLock;
-	cv::Mat lastMat;
+	int imgSize;
+	cv::Mat img;
+	cv::Mat imgGray;
 	cv::VideoCapture capture;
 	bool isOpened;
+	void Init();
 	Camera();
 	~Camera();
 public:

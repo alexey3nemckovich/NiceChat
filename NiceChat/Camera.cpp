@@ -13,6 +13,13 @@ void Camera::Init()
 {
 	isOpened = false;
 	capture = cv::VideoCapture();
+	img = cv::Mat::zeros(CAM_FRAME_HEIGHT, CAM_FRAME_WIDTH, CV_8UC1);
+	if (!img.isContinuous())
+	{
+		img = img.clone();
+		imgGray = imgGray.clone();
+	}
+	imgSize = img.total() * img.elemSize();
 }
 
 
@@ -35,6 +42,7 @@ Camera* Camera::GetInstance()
 void Camera::Open()
 {
 	capture.open(capIndex);
+	capture.set(CV_CAP_PROP_FOURCC, CV_FOURCC('M', 'J', 'P', 'G'));
 	capture.set(CV_CAP_PROP_FRAME_WIDTH, CAM_FRAME_WIDTH);
 	capture.set(CV_CAP_PROP_FRAME_HEIGHT, CAM_FRAME_HEIGHT);
 	isOpened = true;
@@ -62,11 +70,10 @@ bool Camera::IsAvailable()
 
 CamFrame Camera::GetFrame()
 {
-	static CamFrame frame;
+	static CamFrame frame{imgGray, imgSize};
 	std::lock_guard<std::mutex> lock(camLock);
-	capture >> lastMat;
-	frame.data = lastMat.datastart;
-	frame.size = lastMat.dataend - lastMat.datastart;
+	capture >> img;
+	cv::cvtColor(img, imgGray, CV_BGR2GRAY);
 	return frame;
 }
 

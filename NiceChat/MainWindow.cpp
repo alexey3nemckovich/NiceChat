@@ -33,6 +33,7 @@ void MainWindow::Init()
 	imageProcesser = ImageProcesser::GetInstance();
 	hCallThread = NULL;
 	hRenderWebcamThread = NULL;
+	//
 	//hRenderWebcamThread = CreateThread(NULL, 0, &(CamRenderThreadProc), NULL, CREATE_SUSPENDED, 0);
 	//webCamRenderThreadSuspended = true;
 	//init conrtols
@@ -92,6 +93,7 @@ void MainWindow::Show()
 		//camera->Open();
 	}
 	Window::Show();
+	//
 	//ResumeThread(hRenderWebcamThread);
 	//webCamRenderThreadSuspended = false;
 }
@@ -434,29 +436,17 @@ DWORD WINAPI CamRenderThreadProc(CONST LPVOID lParam)
 	while (mainWnd->isAlive)
 	{
 		camFrame = cam->GetFrame();
-		mainWnd->RenderFrame(camFrame.data);
+		mainWnd->RenderFrame(camFrame);
 	}
 	return 0;
 }
 
 
-void MainWindow::RenderMatFrame(cv::Mat frame)
+void MainWindow::RenderFrame(CamFrame camFrame)
 {
 	static HDC hBuffDC = CreateCompatibleDC(NULL);
 	static HDC hCamBoxDC;
-	HBITMAP hBmpFrame = imageProcesser->ConvertCVMatToHBITMAP(frame);
-	SelectObject(hBuffDC, hBmpFrame);
-	hCamBoxDC = GetDC(hWebCamBox);
-	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);
-	ReleaseDC(hWebCamBox, hCamBoxDC);
-}
-
-
-void MainWindow::RenderFrame(const uchar* frameData)
-{
-	static HDC hBuffDC = CreateCompatibleDC(NULL);
-	static HDC hCamBoxDC;
-	HBITMAP hBmpFrame = imageProcesser->GetBitmapFromData(frameData);
+	HBITMAP hBmpFrame = imageProcesser->ConvertCVMatToHBITMAP(camFrame.img);
 	SelectObject(hBuffDC, hBmpFrame);
 	hCamBoxDC = GetDC(hWebCamBox);
 	BitBlt(hCamBoxDC, 0, 0, webCamBoxWidth, webCamBoxHeight, hBuffDC, 0, 0, SRCCOPY);

@@ -85,6 +85,15 @@ void Client::Init()
 	serv_tcp_addr.sin_addr.s_addr = serv_udp_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 	serv_tcp_addr.sin_port = htons(SERVER_TCP_PORT);
 	serv_udp_addr.sin_port = htons(SERVER_UDP_PORT);
+	//Init receiving frame
+	static cv::Mat img;
+	img = cv::Mat::zeros(CAM_FRAME_HEIGHT, CAM_FRAME_WIDTH, CV_8UC1);
+	if (!img.isContinuous())
+	{
+		img.clone();
+	}
+	recvFrame.img = img;
+	recvFrame.size = img.total() * img.elemSize();
 }
 
 
@@ -303,19 +312,14 @@ void Client::EndVideoExchange()
 
 void Client::SendFrame(CamFrame frame)
 {
-	strcpy((char*)frame.data, "123");
-	frame.size = strlen((char*)frame.data);
-	sendto(udp_sock_video, (char*)frame.data, frame.size, 0, (sockaddr*)&interlocutor_sock_addr, sizeof(interlocutor_sock_addr));
+	sendto(udp_sock_video, (char*)frame.img.datastart, frame.size, 0, (sockaddr*)&interlocutor_sock_addr, sizeof(interlocutor_sock_addr));
 }
 
 
 CamFrame Client::RecvFrame()
 {
-	static CamFrame frame;
-	static uchar frameBuff[FRAME_BUFF_LEN];
-	frame.data = frameBuff;
-	frame.size = recvfrom(udp_sock_video, (char*)frameBuff, FRAME_BUFF_LEN, 0, NULL, 0);
-	return frame;
+	recvfrom(udp_sock_video, (char*)recvFrame.img.datastart, recvFrame.size, 0, NULL, 0);
+	return recvFrame;
 }
 
 
@@ -485,15 +489,13 @@ DWORD WINAPI SendFrameThreadProc(LPVOID lpParam)
 	static Camera* cam = Camera::GetInstance();
 	static Client* client = Client::GetInstance();
 	static CamFrame frame;
-	//cam->Open();
+	cam->Open();
 	while (client->status == ClientStatus::OnCall)
 	{
 		frame = cam->GetFrame();
-		frame.data = (uchar*)malloc(100);
 		client->SendFrame(frame);
-		free((void*)frame.data);
 	}
-	//cam->Close();
+	cam->Close();
 	return 0;
 }
 
@@ -507,14 +509,11 @@ DWORD WINAPI RecvFrameThreadProc(LPVOID lpParam)
 	while (client->status == ClientStatus::OnCall)
 	{
 		frame = client->RecvFrame();
-		//mainWnd->RenderFrame(frame.data);
-		if (frame.size != -1)
-		{
-			/*LPCWSTR lpStr = PCharToLPCWSTR((char*)frame.data);
-			MessageBox(NULL, lpStr, L"Mess", 0);
-			free((void*)lpStr);*/
-			Sleep(1000);
-		}
+		mainWnd->RenderFrame(frame);
+		/*LPCWSTR lpStr = PCharToLPCWSTR((char*)frame.data);
+		MessageBox(NULL, lpStr, L"Mess", 0);
+		free((void*)lpStr);*/
+		//Sleep(1000);
 	}
 	return 0;
 }

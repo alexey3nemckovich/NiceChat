@@ -46,6 +46,7 @@ private:
 	char name[STR_BUFF_SIZE];
 	char last_name[STR_BUFF_SIZE];
 	char login[STR_BUFF_SIZE];
+	CamFrame recvFrame;
 	ClientStatus status;
 	//Methods
 	Client();
