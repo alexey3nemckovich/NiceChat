@@ -16,7 +16,6 @@ private:
 	HWND hLoginEdit;
 	HWND hLoginBtn;
 	//fields
-	const int strBuffSize = 50;
 	char *login;
 	char *pass;
 	//methods

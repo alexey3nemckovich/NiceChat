@@ -42,7 +42,6 @@ private:
 	SOCKET tcp_sock_video;
 	sockaddr_in udp_sock_serv_addr;
 	sockaddr_in tcp_sock_video_addr;
-	sockaddr_in interlocutor_sock_addr;
 	HANDLE hServListenThread;
 	HANDLE hSendFrameThread;
 	HANDLE hRecvFrameThread;
@@ -95,7 +94,7 @@ public:
 	void CancelIncomingCall();
 	void CancelOutgoingCall();
 	void StartChatting();
-	void EndChatting();
+	void EndChatting(bool termRecvThread = true);
 	void LeaveChat();
 	ClientStatus GetStatus()
 	{

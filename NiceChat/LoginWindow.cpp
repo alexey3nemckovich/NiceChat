@@ -27,8 +27,8 @@ void LoginWindow::Init()
 	hPassEdit = windowConstructor->CreateControl(L"EDIT", L"", hWnd, 350, 200, w, h, editPassStyle);
 	hLoginBtn = windowConstructor->CreateControl(L"BUTTON", L"Login",hWnd, wndCenter.x - loginBtnWidth / 2, 275, loginBtnWidth, loginBtnHeight, btnStyle);
 	//INIT FIELDS
-	login = (char*)malloc(strBuffSize);
-	pass = (char*)malloc(strBuffSize);
+	login = (char*)malloc(STR_BUFF_SIZE);
+	pass = (char*)malloc(STR_BUFF_SIZE);
 }
 
 
@@ -120,8 +120,11 @@ void LoginWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 
 bool LoginWindow::AllFieldsFilled()
 {
-	GetWindowText(hLoginEdit, (TCHAR*)login, strBuffSize);
-	GetWindowText(hPassEdit, (TCHAR*)pass, strBuffSize);
+	TCHAR buff[STR_BUFF_SIZE];
+	GetWindowText(hLoginEdit, buff, STR_BUFF_SIZE);
+	CharToOem(buff, login);
+	GetWindowText(hPassEdit, buff, STR_BUFF_SIZE);
+	CharToOem(buff, pass);
 	if (strlen(login) == 0
 		|| strlen(pass) == 0)
 	{

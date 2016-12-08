@@ -139,16 +139,16 @@ void RegistrationWindow::InnerControlsProc(LPARAM lParam, WORD controlMsg)
 
 bool RegistrationWindow::AllFieldsFilled()
 {
-	TCHAR buff[strBuffSize];
-	GetWindowText(hNameEdit, buff, strBuffSize);
+	TCHAR buff[STR_BUFF_SIZE];
+	GetWindowText(hNameEdit, buff, STR_BUFF_SIZE);
 	CharToOem(buff, name);
-	GetWindowText(hLastNameEdit, buff, strBuffSize);
+	GetWindowText(hLastNameEdit, buff, STR_BUFF_SIZE);
 	CharToOem(buff, lastName);
-	GetWindowText(hLoginEdit, buff, strBuffSize);
+	GetWindowText(hLoginEdit, buff, STR_BUFF_SIZE);
 	CharToOem(buff, login);
-	GetWindowText(hPassEdit, buff, strBuffSize);
+	GetWindowText(hPassEdit, buff, STR_BUFF_SIZE);
 	CharToOem(buff, pass);
-	GetWindowText(hPassConfirmEdit, buff, strBuffSize);
+	GetWindowText(hPassConfirmEdit, buff, STR_BUFF_SIZE);
 	CharToOem(buff, passConfirm);
 	int x = strlen(name);
 	if (strlen(name) == 0

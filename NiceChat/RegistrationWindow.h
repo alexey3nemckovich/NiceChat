@@ -22,12 +22,11 @@ private:
 	HWND hPassConfirmEdit;
 	HWND hRegBtn;
 	//fields
-	static const int strBuffSize = 50;
-	char name[strBuffSize];
-	char lastName[strBuffSize];
-	char login[strBuffSize];
-	char pass[strBuffSize];
-	char passConfirm[strBuffSize];
+	char name[STR_BUFF_SIZE];
+	char lastName[STR_BUFF_SIZE];
+	char login[STR_BUFF_SIZE];
+	char pass[STR_BUFF_SIZE];
+	char passConfirm[STR_BUFF_SIZE];
 	//methods
 	void Init();
 	bool PasswordsMatch();

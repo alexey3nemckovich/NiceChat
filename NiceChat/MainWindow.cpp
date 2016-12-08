@@ -34,8 +34,8 @@ void MainWindow::Init()
 	hCallThread = NULL;
 	hRenderWebcamThread = NULL;
 	//
-	hRenderWebcamThread = CreateThread(NULL, 0, &(CamRenderThreadProc), NULL, CREATE_SUSPENDED, 0);
-	webCamRenderThreadSuspended = true;
+	//hRenderWebcamThread = CreateThread(NULL, 0, &(CamRenderThreadProc), NULL, CREATE_SUSPENDED, 0);
+	//webCamRenderThreadSuspended = true;
 	//init conrtols
 	DWORD cmbBoxStyle = CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_TABSTOP;
 	hListCapsComboBox = windowConstructor->CreateControl(L"COMBOBOX", L"", hWnd, webCamBoxLeft, 0, 40, 100, cmbBoxStyle);
@@ -87,15 +87,15 @@ void MainWindow::Show()
 	{
 		RefreshOnlineClientsList();
 	}
-	//RefreshCameraComponents();
+	RefreshCameraComponents();
 	if (camera != NULL)
 	{
-		camera->Open();
+		//camera->Open();
 	}
 	Window::Show();
 	//
-	ResumeThread(hRenderWebcamThread);
-	webCamRenderThreadSuspended = false;
+	//ResumeThread(hRenderWebcamThread);
+	//webCamRenderThreadSuspended = false;
 }
 
 
